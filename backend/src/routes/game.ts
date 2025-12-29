@@ -26,10 +26,14 @@ router.get("/startGame/:gameId", async (req: Request<GameParams>, res) => {
     const { gameId } = req.params;
     const val = await redis.get<{ users: string[] }>(gameId);
 
-    if (!val) return res.status(404).json({ message: "Game not found" });
+    if (!val)
+      return res
+        .status(404)
+        .json({ success: false, message: "Game not found" });
 
     if (val.users.length === 2)
       return res.status(400).json({
+        success: false,
         message:
           "2 players already joined the game. No more than 2 players can join single game",
       });
@@ -42,7 +46,7 @@ router.get("/startGame/:gameId", async (req: Request<GameParams>, res) => {
     // add user id to session cookie
     //@ts-ignore
     req.session.userId = userId;
-    res.status(200).json({ url: `/play/${gameId}` });
+    res.status(200).json({ success: true });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Something went wrong" });

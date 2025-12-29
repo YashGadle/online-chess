@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { Clipboard } from "lucide-react";
 
-import { createGame, startGame } from "../utils/api-client";
+import { createGame } from "../utils/api-client";
 import { useAppContext } from "../context/app";
 
 type PropsT = {
@@ -23,12 +23,6 @@ const CreateGameModal = (props: PropsT) => {
     enabled: false,
     refetchOnWindowFocus: false,
   });
-  const { refetch: refetchStartGame } = useQuery({
-    queryKey: ["startGame"],
-    queryFn: () => startGame(gameUrl),
-    enabled: false,
-    refetchOnWindowFocus: false,
-  });
 
   const createGameHandler = async (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>
@@ -36,20 +30,11 @@ const CreateGameModal = (props: PropsT) => {
     e.preventDefault();
     const res = await refetchCreateGame();
     if (!res.data) return;
-    setGameUrl(res.data?.data.gameUrl);
+    setGameUrl(res.data.gameUrl);
     showToast({
       type: "success",
       message: "Game created!",
     });
-  };
-
-  const startGameHandler = async (
-    e: React.MouseEvent<HTMLButtonElement, MouseEvent>
-  ) => {
-    e.preventDefault();
-    const res = await refetchStartGame();
-    if (!res.data) return;
-    navigate(res.data.data.url);
   };
 
   const copyText = () => {
@@ -128,7 +113,7 @@ const CreateGameModal = (props: PropsT) => {
             </button>
             <button
               className="btn btn-dash btn-accent mt-2"
-              onClick={startGameHandler}
+              onClick={() => navigate(gameUrl)}
             >
               Go to Game
             </button>

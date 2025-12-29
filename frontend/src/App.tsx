@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router";
 import Home from "./pages/home";
 import Game from "./pages/game";
 import Layout from "./components/layout";
+import StartGame from "./pages/start-game";
 
 function App() {
   return (
@@ -13,6 +14,14 @@ function App() {
           element={
             <Layout>
               <Home />
+            </Layout>
+          }
+        />
+        <Route
+          path="/startGame/:gameId"
+          element={
+            <Layout>
+              <StartGame />
             </Layout>
           }
         />
