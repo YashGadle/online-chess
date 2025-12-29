@@ -1,0 +1,7 @@
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+.env
