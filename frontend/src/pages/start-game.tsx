@@ -15,7 +15,6 @@ const StartGame = () => {
   });
 
   useEffect(() => {
-    console.log(data);
     if (!data) return;
     if (data.success) navigate(`/play/${gameId}`);
   }, [data]);

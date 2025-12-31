@@ -1,9 +1,10 @@
+import http from "http";
 import express from "express";
-import session from "express-session";
 import cors from "cors";
 import path from "path";
+import { sessionParser } from "./config/session.ts";
+import { setupWebSocket } from "./config/ws.ts";
 
-import "./config/ws.ts";
 import Game from "./routes/game.ts";
 
 const app = express();
@@ -16,11 +17,8 @@ if (process.env.NODE_ENV !== "production") {
   );
 }
 
-const sessionParser = session({
-  saveUninitialized: false,
-  secret: "$eCuRiTy",
-  resave: false,
-});
+const server = http.createServer(app);
+
 app.use(sessionParser);
 
 app.use("/api", Game);
@@ -32,6 +30,7 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
-app.listen("5001", () => {
+setupWebSocket(server);
+server.listen(5001, () => {
   console.log("Server listening on 5001");
 });

@@ -1,39 +1,104 @@
 import { WebSocketServer } from "ws";
 
-import redis from "./upstash-redis.ts";
+import type { Server as HttpServer } from "http";
 
-const wss = new WebSocketServer({
-  port: 8080,
-});
+import { sessionParser } from "./session.ts";
+import { extractGameIdFromUrl } from "../utils/extract-game-id-from-url.ts";
+import redis, { type GameCache } from "./upstash-redis.ts";
 
-wss.on("connection", (ws, request) => {
-  //@ts-ignore
-  const userId = request.session.userId;
-  const url = request.url?.split("/");
-  let gameId = null;
-  if (url) gameId = url[url.length - 1];
+import type { WSMessageT } from "../types/ws-messages.ts";
+import { makeMove, signalStartGame, validateMove } from "../utils/chess.ts";
 
-  console.log("Client Connected", request.url, userId);
+export function setupWebSocket(server: HttpServer) {
+  const wss = new WebSocketServer({ noServer: true });
 
-  const data = {
-    success: true,
-    message: "User is authenticated to play this game",
-  };
-  ws.send(JSON.stringify(data));
+  server.on("upgrade", (request, socket, head) => {
+    if (!request.url?.startsWith("/ws")) {
+      socket.destroy();
+      return;
+    }
 
-  ws.on("message", (buffer: Buffer) => {
-    //TODO chess logic
-    const msg = Buffer.from(buffer).toString();
-    console.log("message received", msg);
+    sessionParser(request as any, {} as any, () => {
+      //@ts-ignore: Property 'session' does not exist on type 'IncomingMessage'.
+      if (!request.session?.userId) {
+        socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
+        return socket.destroy();
+      }
 
-    ws.send("Yes I received your message");
+      wss.handleUpgrade(request, socket, head, (ws) => {
+        wss.emit("connection", ws, request);
+      });
+    });
   });
 
-  ws.on("close", () => {
-    console.log("User disconnected", userId);
+  const clients = new Map<string, WebSocket>();
+
+  wss.on("connection", async (ws, request: any) => {
+    const userId = request.session.userId;
+    //@ts-ignore: Property 'dispatchEvent' is missing in type @types/ws/index
+    clients.set(userId, ws);
+
+    const gameId = extractGameIdFromUrl(request.url);
+    const game = await redis.get<GameCache>(gameId);
+    if (game && game.users.length === 2) {
+      signalStartGame(clients, game.users);
+    }
+
+    ws.on("message", async (data: Buffer) => {
+      try {
+        const dataJSON: WSMessageT = JSON.parse(data.toString());
+        const gameId = extractGameIdFromUrl(request.url);
+        const game = await redis.get<GameCache>(gameId);
+
+        if (!game) {
+          const errorMsg = "Game not found for Id: " + gameId;
+          console.log(errorMsg);
+          return ws.send(JSON.stringify({ error: true, message: errorMsg }));
+        }
+
+        if (!game?.users.some((u) => u === userId)) {
+          const errorMsg = "User not part of the Game: " + userId;
+          console.log(errorMsg);
+          return ws.send(JSON.stringify({ error: true, message: errorMsg }));
+        }
+
+        if (dataJSON.type === "move") {
+          const { board, move } = dataJSON;
+          const isValid = validateMove(dataJSON.board, dataJSON.move);
+          const player = clients.get(userId);
+
+          if (!player) return;
+          if (!isValid)
+            return player.send(
+              JSON.stringify({
+                type: "signal",
+                message: "invalid_move",
+              })
+            );
+
+          const newBoard = makeMove(board, move); // make the move once its validated
+          const opponent = game.users.find((u) => u !== userId); // find opponent connection
+          if (!opponent) return;
+
+          const oppClient = clients.get(opponent);
+          if (oppClient?.readyState === WebSocket.OPEN)
+            oppClient.send(
+              JSON.stringify({
+                type: "move",
+                move: move,
+                board: newBoard,
+              })
+            );
+        }
+      } catch (error) {
+        console.log("Unable to parse message", error);
+      }
+    });
+
+    ws.on("close", () => {
+      clients.delete(userId);
+    });
   });
 
-  ws.on("error", (error) => {
-    console.log("Error occurred");
-  });
-});
+  return wss;
+}

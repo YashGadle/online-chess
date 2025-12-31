@@ -11,6 +11,7 @@ import { useAppContext } from "../context/app";
 type PropsT = {
   ref: RefObject<HTMLDialogElement | null>;
 };
+
 const CreateGameModal = (props: PropsT) => {
   const [gameUrl, setGameUrl] = useState("");
 

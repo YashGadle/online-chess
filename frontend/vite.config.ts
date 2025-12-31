@@ -12,4 +12,12 @@ export default defineConfig({
     }),
     tailwindcss(),
   ],
+  server: {
+    proxy: {
+      "/ws": {
+        target: "http://localhost:5001",
+        ws: true,
+      },
+    },
+  },
 });
