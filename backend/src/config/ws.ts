@@ -47,7 +47,6 @@ export function setupWebSocket(server: HttpServer) {
     ws.on("message", async (data: Buffer) => {
       try {
         const dataJSON: WSMessageT = JSON.parse(data.toString());
-        const gameId = extractGameIdFromUrl(request.url);
         const game = await redis.get<GameCache>(gameId);
 
         if (!game) {
