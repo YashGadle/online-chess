@@ -1,11 +1,11 @@
 import { useState, type RefObject } from "react";
 
 import { useNavigate } from "react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 
 import { Clipboard } from "lucide-react";
 
-import { createGame } from "../utils/api-client";
+import * as apiClient from "../utils/api-client";
 import { useAppContext } from "../context/app";
 
 type PropsT = {
@@ -13,43 +13,66 @@ type PropsT = {
 };
 
 const CreateGameModal = (props: PropsT) => {
-  const [gameUrl, setGameUrl] = useState("");
+  const [startGameUrl, setStartGameUrl] = useState("");
+  const [inviteUrl, setInviteUrl] = useState("");
+  const [enableStartGameButton, setEnableStartGameButton] = useState(false);
+  const [color, setColor] = useState<"white" | "black">("white");
+  const [time, setTime] = useState("");
 
   const navigate = useNavigate();
   const { showToast } = useAppContext();
 
-  const { refetch: refetchCreateGame } = useQuery({
-    queryKey: ["createGame"],
-    queryFn: createGame,
-    enabled: false,
-    refetchOnWindowFocus: false,
+  const { mutate, isPending } = useMutation({
+    mutationKey: ["createGame"],
+    mutationFn: apiClient.createGame,
+    onSuccess: (data) => {
+      if (!data) return;
+
+      setStartGameUrl(data.gameUrl);
+      setInviteUrl(data.inviteUrl);
+      showToast({
+        type: "success",
+        message: "Game created!",
+      });
+    },
+    onError: (err) => {
+      console.log(err);
+      showToast({
+        type: "error",
+        message: "Couldn't create game. Please try again.",
+      });
+    },
   });
 
   const createGameHandler = async (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>
   ) => {
     e.preventDefault();
-    const res = await refetchCreateGame();
-    if (!res.data) return;
-    setGameUrl(res.data.gameUrl);
-    showToast({
-      type: "success",
-      message: "Game created!",
-    });
+    mutate({ color, time });
   };
 
   const copyText = () => {
     navigator.clipboard
-      .writeText(location.origin + gameUrl)
+      .writeText(location.origin + inviteUrl)
       .then(() => {
+        setEnableStartGameButton(true);
         showToast({
           type: "info",
-          message: "Text copied to clipboard: " + gameUrl,
+          message: "Invite copied to clipboard",
         });
       })
       .catch((err) => {
         console.error("Could not copy text: ", err);
       });
+  };
+
+  const handleColorInput = (e: React.ChangeEvent<HTMLFieldSetElement>) => {
+    if (e.target instanceof HTMLInputElement) {
+      setColor(e.target.value as "white" | "black");
+    }
+  };
+  const handleTimeInput = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setTime(e.target.value);
   };
 
   return (
@@ -66,7 +89,7 @@ const CreateGameModal = (props: PropsT) => {
         </form>
         <h3 className="font-bold text-lg">Game Settings</h3>
         <form className="flex flex-col gap-2 my-3">
-          <fieldset className="flex gap-4">
+          <fieldset className="flex gap-4" onChange={handleColorInput}>
             <span>Choose color:</span>
             <label>
               <input
@@ -74,6 +97,7 @@ const CreateGameModal = (props: PropsT) => {
                 type="radio"
                 name="color"
                 value="white"
+                defaultChecked
                 className="mr-2"
               />
               White
@@ -90,7 +114,11 @@ const CreateGameModal = (props: PropsT) => {
             </label>
           </fieldset>
 
-          <select defaultValue="default" className="select">
+          <select
+            defaultValue="default"
+            className="select"
+            onChange={handleTimeInput}
+          >
             <option value="default" disabled>
               Select time control
             </option>
@@ -106,19 +134,21 @@ const CreateGameModal = (props: PropsT) => {
           </select>
         </form>
 
-        {gameUrl && (
+        {inviteUrl && (
           <div className="flex flex-col">
-            Share this URL with your friend: {`${location.origin}${gameUrl}`}
-            <button className="btn" onClick={copyText}>
-              <Clipboard />
-            </button>
-            <button
-              className="btn btn-dash btn-accent mt-2"
-              onClick={() => navigate(gameUrl)}
-            >
-              Go to Game
+            <button className="btn btn-dash btn-info" onClick={copyText}>
+              <Clipboard /> Click here to get invite Url
             </button>
           </div>
+        )}
+        {startGameUrl && (
+          <button
+            className="btn btn-accent mt-2 w-full"
+            onClick={() => navigate(startGameUrl)}
+            disabled={!enableStartGameButton}
+          >
+            Go to Game
+          </button>
         )}
 
         <div className="modal-action">
@@ -126,13 +156,18 @@ const CreateGameModal = (props: PropsT) => {
             method="dialog"
             className="flex  gap-3 justify-center items-center"
           >
-            {!gameUrl && (
+            {!startGameUrl && (
               <>
                 <button
                   className="btn btn-outline btn-primary"
                   onClick={createGameHandler}
+                  disabled={isPending}
                 >
-                  Create Game
+                  {isPending ? (
+                    <span className="loading loading-dots loading-sm"></span>
+                  ) : (
+                    "Create Game"
+                  )}
                 </button>
                 <button className="btn btn-outline btn-warning">Cancel</button>
               </>

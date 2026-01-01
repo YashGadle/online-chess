@@ -1,13 +1,23 @@
 import { useEffect } from "react";
 
-import { useNavigate, useParams } from "react-router";
+import { useLocation, useNavigate, useParams } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 
 import * as apiClient from "../utils/api-client";
+import { useLocalStorage } from "../hooks/useLocalStorage";
 
 const StartGame = () => {
-  const { gameId } = useParams();
+  const { set, remove } = useLocalStorage();
+
   const navigate = useNavigate();
+  const { gameId = "" } = useParams();
+  const { search } = useLocation();
+  const searchParams = new URLSearchParams(search);
+
+  const playerColor = searchParams.get("color");
+  const gameTimeControl = searchParams.get("time");
+
+  set(gameId, JSON.stringify({ color: playerColor, time: gameTimeControl }));
 
   const { data, isPending } = useQuery({
     queryKey: ["startGame"],
@@ -15,7 +25,7 @@ const StartGame = () => {
   });
 
   useEffect(() => {
-    if (!data) return;
+    if (!data) return remove(gameId);
     if (data.success) navigate(`/play/${gameId}`);
   }, [data]);
 
