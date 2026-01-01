@@ -13,17 +13,22 @@ const Game = () => {
   const { gameId } = useParams();
   const chessGame = useRef(new Chess()).current;
 
+  const [startGame, setStartGame] = useState(false);
   const [chessPosition, setChessPosition] = useState(chessGame.fen());
   const { sendJsonMessage, lastMessage, readyState } = useWebSocket(
     SOCKET_URL + "/game/" + gameId
   );
 
   useEffect(() => {
-    console.log(lastMessage, typeof lastMessage);
     if (!lastMessage || !lastMessage.data) return;
     const data = JSON.parse(lastMessage.data);
+
+    if (data.type === "signal" && data.message === "start_game") {
+      setStartGame(true);
+    }
+
     if (data && data.type && data.type === "move") {
-      chessGame.move(data.move);
+      chessGame.move({ from: data.fromSquare, to: data.toSquare });
       setChessPosition(chessGame.fen());
     }
   }, [lastMessage]);
@@ -39,7 +44,8 @@ const Game = () => {
     try {
       sendJsonMessage({
         type: "move",
-        move: targetSquare,
+        fromSquare: sourceSquare,
+        toSquare: targetSquare,
         board: chessGame.fen(),
       });
 
@@ -63,12 +69,20 @@ const Game = () => {
     id: "play-vs-random",
   };
 
+  const BlockingOverlay = () => (
+    <div className="h-full w-full absolute z-2 bg-black/50 flex justify-center items-center">
+      <span className="text-3xl text-secondary">
+        Waiting for opponent
+      </span>
+    </div>
+  );
+
   return (
     <div className="flex flex-col justify-center items-center">
-      {readyState !== ReadyState.OPEN && (
-        <div>Please wait for the players to connect</div>
-      )}
-      <Chessboard options={chessboardOptions} />
+      <div className="h-[50%] w-[50%] relative">
+        {(readyState !== ReadyState.OPEN || !startGame) && <BlockingOverlay />}
+        <Chessboard options={chessboardOptions} />
+      </div>
     </div>
   );
 };

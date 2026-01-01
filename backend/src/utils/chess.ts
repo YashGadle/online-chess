@@ -24,32 +24,33 @@ export const signalStartGame = (
 };
 
 /**
- * Validates if the move made was valid.
- * @param board FEN string used to initialize board
- * @param move string move --- e4, Nd3, Kg2 etc...
- * @returns true or false
- */
-export const validateMove = (board: string, move: string) => {
-  const chess = new Chess(board);
-  const moves = chess.moves();
-
-  return moves.some((m) => m === move);
-};
-
-/**
  * Makes a move on the board.
  * @param board FEN string used to initialize board
- * @param move string move --- e4, Nd3, Kg2 etc...
+ * @param fromSquare string move from
+ * @param toSquare string move to
  * @returns New FEN after making the move
  */
-export const makeMove = (board: string, move: string) => {
+export const makeMove = (
+  board: string,
+  fromSquare: string,
+  toSquare: string
+) => {
   try {
-    const chess = new Chess();
-    chess.move(move);
+    const chess = new Chess(board);
+    const move = chess.move({
+      from: fromSquare,
+      to: toSquare,
+      promotion: "q",
+    });
+
+    if (!move) {
+      console.log("Invalid move");
+      return null;
+    }
 
     return chess.fen();
   } catch (err) {
-    console.log('Make move error', err);
+    console.log("Make move error", err);
   }
 };
 

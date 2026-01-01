@@ -100,8 +100,8 @@ const CreateGameModal = (props: PropsT) => {
             <option id="10|5" value="10|5">
               10 min + 5 secs increment
             </option>
-            <option id="5|2" value="5|2">
-              5 min + 2 secs increment
+            <option id="5|3" value="5|3">
+              5 min + 3 secs increment
             </option>
           </select>
         </form>
@@ -109,7 +109,7 @@ const CreateGameModal = (props: PropsT) => {
         {gameUrl && (
           <div className="flex flex-col">
             Share this URL with your friend: {`${location.origin}${gameUrl}`}
-            <button onClick={copyText}>
+            <button className="btn" onClick={copyText}>
               <Clipboard />
             </button>
             <button

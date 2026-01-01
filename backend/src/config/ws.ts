@@ -7,7 +7,7 @@ import { extractGameIdFromUrl } from "../utils/extract-game-id-from-url.ts";
 import redis, { type GameCache } from "./upstash-redis.ts";
 
 import type { WSMessageT } from "../types/ws-messages.ts";
-import { makeMove, signalStartGame, validateMove } from "../utils/chess.ts";
+import { makeMove, signalStartGame } from "../utils/chess.ts";
 
 export function setupWebSocket(server: HttpServer) {
   const wss = new WebSocketServer({ noServer: true });
@@ -63,12 +63,13 @@ export function setupWebSocket(server: HttpServer) {
         }
 
         if (dataJSON.type === "move") {
-          const { board, move } = dataJSON;
-          const isValid = validateMove(dataJSON.board, dataJSON.move);
+          const { board, fromSquare, toSquare } = dataJSON;
           const player = clients.get(userId);
 
           if (!player) return;
-          if (!isValid)
+
+          const newBoard = makeMove(board, fromSquare, toSquare);
+          if (!newBoard)
             return player.send(
               JSON.stringify({
                 type: "signal",
@@ -76,7 +77,6 @@ export function setupWebSocket(server: HttpServer) {
               })
             );
 
-          const newBoard = makeMove(board, move); // make the move once its validated
           const opponent = game.users.find((u) => u !== userId); // find opponent connection
           if (!opponent) return;
 
@@ -85,7 +85,8 @@ export function setupWebSocket(server: HttpServer) {
             oppClient.send(
               JSON.stringify({
                 type: "move",
-                move: move,
+                fromSquare: fromSquare,
+                toSquare: toSquare,
                 board: newBoard,
               })
             );

@@ -9,6 +9,7 @@ export type WSMessageT =
     }
   | {
       type: "move";
-      move: string;
+      fromSquare: string;
+      toSquare: string;
       board: string; // FEN string
     };

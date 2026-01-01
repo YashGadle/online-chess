@@ -20,6 +20,7 @@ if (process.env.NODE_ENV !== "production") {
 const server = http.createServer(app);
 
 app.use(sessionParser);
+app.use(express.json());
 
 app.use("/api", Game);
 
