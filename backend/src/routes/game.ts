@@ -55,7 +55,7 @@ router.get("/startGame/:gameId", async (req: Request<GameParams>, res) => {
     }
 
     // add user id to session cookie
-    //@ts-ignore
+    //@ts-ignore: Property 'session' does not exist on type 'Request'
     req.session.userId = userId;
     res.status(200).json({ success: true });
   } catch (error) {
