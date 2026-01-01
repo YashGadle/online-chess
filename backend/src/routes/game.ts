@@ -13,7 +13,7 @@ router.post("/createGame", (req, res) => {
   try {
     const gameId = uuidV4();
     const { color = "white", time = "5|3" } = req.body;
-    redis.set(gameId, { users: [] });
+    redis.set(gameId, { users: [] }, { ex: 24 * 60 * 60 }); // expire after 24 hours
     let opponentColor = color === "white" ? "black" : "white";
 
     res.status(200).json({
