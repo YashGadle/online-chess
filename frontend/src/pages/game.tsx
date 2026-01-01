@@ -5,12 +5,24 @@ import { useParams } from "react-router";
 import useWebSocket, { ReadyState } from "react-use-websocket";
 
 import { Chess } from "chess.js";
-import { Chessboard, type PieceDropHandlerArgs } from "react-chessboard";
+import {
+  Chessboard,
+  type PieceDropHandlerArgs,
+  type PieceHandlerArgs,
+} from "react-chessboard";
+
+import useLocalStorage from "../hooks/useLocalStorage";
 
 const SOCKET_URL = "ws://localhost:5173/ws";
 
 const Game = () => {
-  const { gameId } = useParams();
+  const { gameId = "" } = useParams();
+  const { get } = useLocalStorage();
+  //@ts-ignore
+  const { color: playerColor, time: timeControl } = get<{
+    color: "white" | "black";
+    time: string;
+  }>(gameId);
   const chessGame = useRef(new Chess()).current;
 
   const [startGame, setStartGame] = useState(false);
@@ -63,20 +75,25 @@ const Game = () => {
     }
   };
 
+  function canDragPiece({ piece }: PieceHandlerArgs) {
+    return piece.pieceType[0] === playerColor[0];
+  }
+
   const chessboardOptions = {
     position: chessPosition,
     onPieceDrop,
-    id: "play-vs-random",
+    canDragPiece,
+    boardOrientation: playerColor,
+    id: `multiplayer-${playerColor}`,
   };
 
   const BlockingOverlay = () => (
     <div className="h-full w-full absolute z-2 bg-black/50 flex justify-center items-center">
-      <span className="text-3xl text-secondary">
-        Waiting for opponent
-      </span>
+      <span className="text-3xl">Waiting for opponent</span>
     </div>
   );
 
+  if (!gameId) return null;
   return (
     <div className="flex flex-col justify-center items-center">
       <div className="h-[50%] w-[50%] relative">
