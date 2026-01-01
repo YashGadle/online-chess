@@ -43,7 +43,7 @@ router.get("/startGame/:gameId", async (req: Request<GameParams>, res) => {
           "2 players already joined the game. No more than 2 players can join single game",
       });
 
-    //@ts-ignore
+    //@ts-ignore: Property 'session' does not exist on type 'Request'
     let userId = req.session.userId;
     if (!userId) {
       userId = uuidV4();
