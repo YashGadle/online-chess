@@ -12,18 +12,25 @@ import {
 } from "react-chessboard";
 
 import useLocalStorage from "../hooks/useLocalStorage";
+import GameOverModal from "../components/game-over-modal";
+import { checkGameEnd } from "../utils/chess";
 
 const SOCKET_URL = "ws://localhost:5173/ws";
 
 const Game = () => {
+  const gameOverModalRef = useRef<HTMLDialogElement>(null);
   const { gameId = "" } = useParams();
-  const { get } = useLocalStorage();
-  //@ts-ignore
-  const { color: playerColor, time: timeControl } = get<{
+  const { get: getGame, set: setGame } = useLocalStorage();
+  const {
+    color: playerColor,
+    time: timeControl,
+    gameFen = new Chess().fen(),
+  } = getGame<{
     color: "white" | "black";
     time: string;
+    gameFen: string;
   }>(gameId);
-  const chessGame = useRef(new Chess()).current;
+  const chessGame = useRef(new Chess(gameFen)).current;
 
   const [startGame, setStartGame] = useState(false);
   const [chessPosition, setChessPosition] = useState(chessGame.fen());
@@ -42,6 +49,11 @@ const Game = () => {
     if (data && data.type && data.type === "move") {
       chessGame.move({ from: data.fromSquare, to: data.toSquare });
       setChessPosition(chessGame.fen());
+      setGame(gameId, {
+        color: playerColor,
+        time: timeControl,
+        gameFen: chessGame.fen(),
+      });
     }
   }, [lastMessage]);
 
@@ -67,6 +79,12 @@ const Game = () => {
         promotion: "q",
       });
 
+      setGame(gameId, {
+        color: playerColor,
+        time: timeControl,
+        gameFen: chessGame.fen(),
+      });
+
       setChessPosition(chessGame.fen());
 
       return true;
@@ -74,6 +92,11 @@ const Game = () => {
       return false;
     }
   };
+
+  if(checkGameEnd(chessPosition)) {
+    console.log(chessPosition);
+    gameOverModalRef.current?.showModal();
+  }
 
   function canDragPiece({ piece }: PieceHandlerArgs) {
     return piece.pieceType[0] === playerColor[0];
@@ -100,6 +123,7 @@ const Game = () => {
         {(readyState !== ReadyState.OPEN || !startGame) && <BlockingOverlay />}
         <Chessboard options={chessboardOptions} />
       </div>
+      <GameOverModal ref={gameOverModalRef} board={chessPosition}/>
     </div>
   );
 };

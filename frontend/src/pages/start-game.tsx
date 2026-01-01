@@ -1,5 +1,7 @@
 import { useEffect } from "react";
 
+import { Chess } from "chess.js";
+
 import { useLocation, useNavigate, useParams } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 
@@ -17,7 +19,11 @@ const StartGame = () => {
   const playerColor = searchParams.get("color");
   const gameTimeControl = searchParams.get("time");
 
-  set(gameId, { color: playerColor, time: gameTimeControl });
+  set(gameId, {
+    color: playerColor,
+    time: gameTimeControl,
+    gameFen: new Chess().fen(),
+  });
 
   const { data, isPending } = useQuery({
     queryKey: ["startGame"],

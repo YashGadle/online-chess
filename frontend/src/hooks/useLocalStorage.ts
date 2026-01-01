@@ -1,4 +1,6 @@
 const useLocalStorage = () => {
+  //TODO: fix this implementation to be type safe.
+  // TODO: handle game fen updates inside it so that component don't have to.
   const set = (key: string, value: unknown) => {
     try {
       localStorage.setItem(key, JSON.stringify(value));

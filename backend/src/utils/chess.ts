@@ -53,21 +53,3 @@ export const makeMove = (
     console.log("Make move error", err);
   }
 };
-
-/**
- * Checks how to game ends
- * @param board FEN string used to initialize board
- * @returns isGameOver, isStaleMate, isDraw
- */
-export const checkGameEnd = (board: string) => {
-  const chess = new Chess(board);
-  const isGameOver = chess.isGameOver();
-  const isStaleMate = chess.isStalemate();
-  const isDraw = chess.isDraw();
-
-  return {
-    isGameOver,
-    isStaleMate,
-    isDraw,
-  };
-};

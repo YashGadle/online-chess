@@ -58,7 +58,7 @@ const CreateGameModal = (props: PropsT) => {
         setEnableStartGameButton(true);
         showToast({
           type: "info",
-          message: "Invite copied to clipboard",
+          message: "Invite copied to clipboard, now send it to your friend",
         });
       })
       .catch((err) => {
@@ -137,7 +137,7 @@ const CreateGameModal = (props: PropsT) => {
         {inviteUrl && (
           <div className="flex flex-col">
             <button className="btn btn-dash btn-info" onClick={copyText}>
-              <Clipboard /> Click here to get invite Url
+              <Clipboard /> Click here to get the Invite
             </button>
           </div>
         )}
