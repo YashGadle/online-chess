@@ -1,29 +1,6 @@
 import { Chess } from "chess.js";
 
 /**
- * Sends "start_game" signal when both clients join the game.
- * @param clients Map of all the connected clients
- * @param users list of users in a game
- */
-export const signalStartGame = (
-  clients: Map<string, WebSocket>,
-  users: string[]
-) => {
-  if (clients.has(users[0]) && clients.has(users[1])) {
-    for (const u of users) {
-      const client = clients.get(u);
-      if (!client || client.readyState !== WebSocket.OPEN) continue;
-      client.send(
-        JSON.stringify({
-          type: "signal",
-          message: "start_game",
-        })
-      );
-    }
-  }
-};
-
-/**
  * Makes a move on the board.
  * @param board FEN string used to initialize board
  * @param fromSquare string move from
@@ -53,3 +30,32 @@ export const makeMove = (
     console.log("Make move error", err);
   }
 };
+
+/**
+ * Converts time control to initial time value for players
+ * @param timeControl 15|10, 10|5, 5|3
+ * @returns milliseconds
+ */
+export const getTimeMs = (timeControl: string) => {
+  let ms = 5 * 60 * 1000; // default
+  switch (timeControl) {
+    case "15|10":
+      ms = 15 * 60 * 1000;
+      break;
+    case "10|5":
+      ms = 10 * 60 * 1000;
+      break;
+    case "5|3":
+      ms = 5 * 60 * 1000;
+      break;
+    default:
+      console.log(`Unknown time control found, ${timeControl}`);
+  }
+
+  return ms;
+};
+
+export const gameTurn = (board: string) => {
+  const chess = new Chess(board);
+  return chess.turn();
+}

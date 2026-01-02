@@ -7,7 +7,9 @@ import { extractGameIdFromUrl } from "../utils/extract-game-id-from-url.ts";
 import redis, { type GameCache } from "./upstash-redis.ts";
 
 import type { WSMessageT } from "../types/ws-messages.ts";
-import { makeMove, signalStartGame } from "../utils/chess.ts";
+import { signalStartGame } from "../routes/chess.ts";
+
+import handleChessGame from "../routes/chess.ts";
 
 export function setupWebSocket(server: HttpServer) {
   const wss = new WebSocketServer({ noServer: true });
@@ -41,54 +43,17 @@ export function setupWebSocket(server: HttpServer) {
     const gameId = extractGameIdFromUrl(request.url);
     const game = await redis.get<GameCache>(gameId);
     if (game && game.users.length === 2) {
-      signalStartGame(clients, game.users);
+      signalStartGame(clients, game);
     }
 
     ws.on("message", async (data: Buffer) => {
       try {
         const dataJSON: WSMessageT = JSON.parse(data.toString());
-        const game = await redis.get<GameCache>(gameId);
 
-        if (!game) {
-          const errorMsg = "Game not found for Id: " + gameId;
-          console.log(errorMsg);
-          return ws.send(JSON.stringify({ error: true, message: errorMsg }));
-        }
-
-        if (!game?.users.some((u) => u === userId)) {
-          const errorMsg = "User not part of the Game: " + userId;
-          console.log(errorMsg);
-          return ws.send(JSON.stringify({ error: true, message: errorMsg }));
-        }
-
+        // Logic to handle chess moves
         if (dataJSON.type === "move") {
-          const { board, fromSquare, toSquare } = dataJSON;
-          const player = clients.get(userId);
-
-          if (!player) return;
-
-          const newBoard = makeMove(board, fromSquare, toSquare);
-          if (!newBoard)
-            return player.send(
-              JSON.stringify({
-                type: "signal",
-                message: "invalid_move",
-              })
-            );
-
-          const opponent = game.users.find((u) => u !== userId); // find opponent connection
-          if (!opponent) return;
-
-          const oppClient = clients.get(opponent);
-          if (oppClient?.readyState === WebSocket.OPEN)
-            oppClient.send(
-              JSON.stringify({
-                type: "move",
-                fromSquare: fromSquare,
-                toSquare: toSquare,
-                board: newBoard,
-              })
-            );
+          //@ts-ignore: Property 'dispatchEvent' is missing in type @types/ws/index
+          handleChessGame(ws, clients, dataJSON, request);
         }
       } catch (error) {
         console.log("Unable to parse message", error);

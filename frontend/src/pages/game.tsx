@@ -14,7 +14,11 @@ import {
 
 import useLocalStorage from "../hooks/useLocalStorage";
 import GameOverModal from "../components/game-over-modal";
+import Clock from "../components/clock";
+
 import { checkGameEnd } from "../utils/chess";
+
+import type { WSMessageT } from "../../../backend/src/types/ws-messages";
 
 const SOCKET_URL = "ws://localhost:5173/ws";
 
@@ -34,6 +38,10 @@ const Game = () => {
   const chessGame = useRef(new Chess(gameFen)).current;
 
   const [startGame, setStartGame] = useState(false);
+  const [clockTimes, setClockTimes] = useState({
+    whiteTimeMs: 0,
+    blackTimeMs: 0,
+  });
   const [squareStyles, setSquareStyles] = useState({});
   const [chessPosition, setChessPosition] = useState(chessGame.fen());
   const { sendJsonMessage, lastMessage, readyState } = useWebSocket(
@@ -42,10 +50,14 @@ const Game = () => {
 
   useEffect(() => {
     if (!lastMessage || !lastMessage.data) return;
-    const data = JSON.parse(lastMessage.data);
+    const data = JSON.parse(lastMessage.data) as WSMessageT;
 
     if (data.type === "signal" && data.message === "start_game") {
       setStartGame(true);
+      setClockTimes({
+        whiteTimeMs: data.whiteTimeMs,
+        blackTimeMs: data.blackTimeMs,
+      });
     }
 
     if (data && data.type && data.type === "move") {
@@ -73,6 +85,7 @@ const Game = () => {
         fromSquare: sourceSquare,
         toSquare: targetSquare,
         board: chessGame.fen(),
+        clientMoveTimeMs: Date.now(),
       });
 
       chessGame.move({
@@ -153,13 +166,29 @@ const Game = () => {
       highlightMoves(square);
     },
   };
-
+  console.log(clockTimes)
   if (!gameId) return null;
   return (
     <div className="flex flex-col justify-center items-center">
       <div className="h-[50%] w-[50%] relative">
         {(readyState !== ReadyState.OPEN || !startGame) && <BlockingOverlay />}
-        <Chessboard options={chessboardOptions} />
+        <div>
+          <Clock
+            timeMs={
+              playerColor === "w"
+                ? clockTimes.blackTimeMs
+                : clockTimes.whiteTimeMs
+            }
+          />
+          <Chessboard options={chessboardOptions} />
+          <Clock
+            timeMs={
+              playerColor === "w"
+                ? clockTimes.whiteTimeMs
+                : clockTimes.blackTimeMs
+            }
+          />
+        </div>
       </div>
       <GameOverModal ref={gameOverModalRef} board={chessPosition} />
     </div>

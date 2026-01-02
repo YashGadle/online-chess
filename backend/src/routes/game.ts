@@ -1,7 +1,10 @@
 import { Router, type Request } from "express";
 import { v4 as uuidV4 } from "uuid";
 
-import redis from "../config/upstash-redis.ts";
+import { Chess } from "chess.js";
+
+import redis, { type GameCache } from "../config/upstash-redis.ts";
+import { getTimeMs } from "../utils/chess.ts";
 
 interface GameParams {
   gameId: string;
@@ -13,7 +16,7 @@ router.post("/createGame", (req, res) => {
   try {
     const gameId = uuidV4();
     const { color = "white", time = "5|3" } = req.body;
-    redis.set(gameId, { users: [] }, { ex: 24 * 60 * 60 }); // expire after 24 hours
+    redis.set(gameId, { users: [], board: new Chess().fen() });
     let opponentColor = color === "white" ? "black" : "white";
 
     res.status(200).json({
@@ -29,7 +32,8 @@ router.post("/createGame", (req, res) => {
 router.get("/startGame/:gameId", async (req: Request<GameParams>, res) => {
   try {
     const { gameId } = req.params;
-    const game = await redis.get<{ users: string[] }>(gameId);
+    const { color = "white", time = "5|3" } = req.query;
+    const game = await redis.get<GameCache>(gameId);
 
     if (!game)
       return res
@@ -49,9 +53,17 @@ router.get("/startGame/:gameId", async (req: Request<GameParams>, res) => {
       userId = uuidV4();
     }
 
+    const initialPlayerTime = getTimeMs(time as string);
+
     if (game.users.length === 0 || game.users.some((u) => u !== userId)) {
       game.users.push(userId);
-      redis.set(gameId, { users: game.users });
+      redis.set(gameId, {
+        ...game,
+        users: game.users,
+        whiteTimeMs: initialPlayerTime,
+        blackTimeMs: initialPlayerTime,
+        lastMoveAtMs: Date.now(),
+      });
     }
 
     // add user id to session cookie
