@@ -2,10 +2,10 @@ import http from "http";
 import express from "express";
 import cors from "cors";
 import path from "path";
-import { sessionParser } from "./config/session.ts";
-import { setupWebSocket } from "./config/ws.ts";
+import { sessionParser } from "./config/session";
+import { setupWebSocket } from "./config/ws";
 
-import Game from "./routes/game.ts";
+import Game from "./routes/game";
 
 const app = express();
 if (process.env.NODE_ENV !== "production") {

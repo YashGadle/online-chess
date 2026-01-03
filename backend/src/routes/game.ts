@@ -3,8 +3,8 @@ import { v4 as uuidV4 } from "uuid";
 
 import { Chess } from "chess.js";
 
-import redis, { type GameCache } from "../config/upstash-redis.ts";
-import { getTimeMs } from "../utils/chess.ts";
+import redis, { type GameCache } from "../config/upstash-redis";
+import { getTimeMs } from "../utils/chess";
 
 interface GameParams {
   gameId: string;

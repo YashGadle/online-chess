@@ -4,11 +4,12 @@
   "description": "",
   "license": "ISC",
   "author": "",
-  "type": "module",
+  "type": "commonjs",
   "main": "./src/server.ts",
   "scripts": {
     "dev": "nodemon --exec ts-node --transpile-only ./src/server.ts",
-    "start": "node src/server.ts"
+    "build": "tsc",
+    "start": "node dist/server.js"
   },
   "dependencies": {
     "@upstash/ratelimit": "^2.0.5",

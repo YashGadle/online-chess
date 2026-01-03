@@ -1,8 +1,8 @@
-import { gameTurn, makeMove } from "../utils/chess.ts";
-import redis, { type GameCache } from "../config/upstash-redis.ts";
-import { extractGameIdFromUrl } from "../utils/extract-game-id-from-url.ts";
+import { gameTurn, makeMove } from "../utils/chess";
+import redis, { type GameCache } from "../config/upstash-redis";
+import { extractGameIdFromUrl } from "../utils/extract-game-id-from-url";
 
-import type { WSMessageT } from "../types/ws-messages.ts";
+import type { WSMessageT } from "../types/ws-messages";
 
 /**
  * Sends "start_game" signal when both clients join the game with proper clock times

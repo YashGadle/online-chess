@@ -2,14 +2,14 @@ import { WebSocketServer } from "ws";
 
 import type { Server as HttpServer } from "http";
 
-import { sessionParser } from "./session.ts";
-import { extractGameIdFromUrl } from "../utils/extract-game-id-from-url.ts";
-import redis, { type GameCache } from "./upstash-redis.ts";
+import { sessionParser } from "./session";
+import { extractGameIdFromUrl } from "../utils/extract-game-id-from-url";
+import redis, { type GameCache } from "./upstash-redis";
 
-import type { WSMessageT } from "../types/ws-messages.ts";
-import { signalStartGame } from "../routes/chess.ts";
+import type { WSMessageT } from "../types/ws-messages";
+import { signalStartGame } from "../routes/chess";
 
-import handleChessGame from "../routes/chess.ts";
+import handleChessGame from "../routes/chess";
 
 export function setupWebSocket(server: HttpServer) {
   const wss = new WebSocketServer({ noServer: true });
