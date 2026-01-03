@@ -27,7 +27,10 @@ export type GameContextT = {
   chessBoardOptions: ChessboardOptions;
 };
 
-const SOCKET_URL = `ws://${window.location.host}/ws`;
+const SOCKET_URL =
+  import.meta.env.MODE === "development"
+    ? `ws://${window.location.host}/ws`
+    : `wss://${window.location.host}/ws`;
 const GameContext = createContext<GameContextT | undefined>(undefined);
 
 export const GameContextProvider = ({
@@ -40,7 +43,7 @@ export const GameContextProvider = ({
   const { sendJsonMessage, lastMessage, readyState } = useWebSocket(
     SOCKET_URL + "/game/" + gameId
   );
-
+  console.log(lastMessage);
   const {
     //@ts-ignore
     color: playerColor,
