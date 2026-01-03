@@ -21,9 +21,6 @@ export const signalStartGame = (
         JSON.stringify({
           type: "signal",
           message: "start_game",
-          whiteTimeMs: game.whiteTimeMs,
-          blackTimeMs: game.blackTimeMs,
-          lastMoveAtMs: game.lastMoveAtMs, // not needed but just to make TS happy
         } satisfies Extract<WSMessageT, { type: "signal" }>)
       );
     }
@@ -96,6 +93,7 @@ const handleChessGame = async (
     // set redis with new time values
     redis.set(gameId, {
       users: game.users,
+      gameStart: true,
       whiteTimeMs: newWhiteTimeMs,
       blackTimeMs: newBlackTimeMs,
       lastMoveAtMs: Date.now(),
@@ -111,6 +109,29 @@ const handleChessGame = async (
         newBlackTimeMs,
       })
     );
+
+    if (!game.gameStart) {
+      // first move has been made
+      playerClient.send(
+        JSON.stringify({
+          type: "signal",
+          message: "start_clock",
+          whiteTimeMs: game.whiteTimeMs,
+          blackTimeMs: game.blackTimeMs,
+          lastMoveAtMs: game.lastMoveAtMs, // not needed but just to make TS happy
+        } as WSMessageT)
+      );
+
+      oppClient.send(
+        JSON.stringify({
+          type: "signal",
+          message: "start_clock",
+          whiteTimeMs: game.whiteTimeMs,
+          blackTimeMs: game.blackTimeMs,
+          lastMoveAtMs: game.lastMoveAtMs, // not needed but just to make TS happy
+        } as WSMessageT)
+      );
+    }
   }
 };
 

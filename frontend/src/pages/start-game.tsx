@@ -27,7 +27,7 @@ const StartGame = () => {
 
   const { data, isPending } = useQuery({
     queryKey: ["startGame"],
-    queryFn: () => apiClient.startGame(gameId || ""),
+    queryFn: () => apiClient.startGame(gameId || "", searchParams.toString()),
   });
 
   useEffect(() => {

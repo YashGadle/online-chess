@@ -16,7 +16,7 @@ const CreateGameModal = (props: PropsT) => {
   const [startGameUrl, setStartGameUrl] = useState("");
   const [inviteUrl, setInviteUrl] = useState("");
   const [enableStartGameButton, setEnableStartGameButton] = useState(false);
-  const [color, setColor] = useState<"white" | "black">("white");
+  const [color, setColor] = useState<"w" | "b">("w");
   const [time, setTime] = useState("");
 
   const navigate = useNavigate();
@@ -68,7 +68,7 @@ const CreateGameModal = (props: PropsT) => {
 
   const handleColorInput = (e: React.ChangeEvent<HTMLFieldSetElement>) => {
     if (e.target instanceof HTMLInputElement) {
-      setColor(e.target.value as "white" | "black");
+      setColor(e.target.value as "w" | "b");
     }
   };
   const handleTimeInput = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -96,7 +96,7 @@ const CreateGameModal = (props: PropsT) => {
                 id="white"
                 type="radio"
                 name="color"
-                value="white"
+                value="w"
                 defaultChecked
                 className="mr-2"
               />
@@ -107,7 +107,7 @@ const CreateGameModal = (props: PropsT) => {
                 id="black"
                 type="radio"
                 name="color"
-                value="black"
+                value="b"
                 className="mr-2"
               />
               Black

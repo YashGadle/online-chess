@@ -15,9 +15,13 @@ const router = Router();
 router.post("/createGame", (req, res) => {
   try {
     const gameId = uuidV4();
-    const { color = "white", time = "5|3" } = req.body;
-    redis.set(gameId, { users: [], board: new Chess().fen() });
-    let opponentColor = color === "white" ? "black" : "white";
+    const { color = "w", time = "5|3" } = req.body;
+    redis.set(gameId, {
+      users: [],
+      gameStart: false,
+      board: new Chess().fen(),
+    });
+    let opponentColor = color === "w" ? "b" : "w";
 
     res.status(200).json({
       gameUrl: `/startGame/${gameId}?color=${color}&time=${time}`,
@@ -32,7 +36,7 @@ router.post("/createGame", (req, res) => {
 router.get("/startGame/:gameId", async (req: Request<GameParams>, res) => {
   try {
     const { gameId } = req.params;
-    const { color = "white", time = "5|3" } = req.query;
+    const { color = "w", time = "5|3" } = req.query;
     const game = await redis.get<GameCache>(gameId);
 
     if (!game)

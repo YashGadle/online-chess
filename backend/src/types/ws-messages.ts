@@ -5,9 +5,13 @@ export type TimeT = {
 };
 
 export type WSMessageT =
-  | ({
+  | {
       type: "signal";
       message: "start_game";
+    }
+  | ({
+      type: "signal";
+      message: "start_clock";
     } & TimeT)
   | {
       type: "error";

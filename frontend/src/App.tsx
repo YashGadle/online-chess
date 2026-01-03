@@ -5,6 +5,8 @@ import Game from "./pages/game";
 import Layout from "./components/layout";
 import StartGame from "./pages/start-game";
 
+import { GameContextProvider } from "./context/game";
+
 function App() {
   return (
     <BrowserRouter>
@@ -29,7 +31,9 @@ function App() {
           path="/play/:gameId"
           element={
             <Layout>
-              <Game />
+              <GameContextProvider>
+                <Game />
+              </GameContextProvider>
             </Layout>
           }
         />

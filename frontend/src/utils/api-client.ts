@@ -2,7 +2,7 @@ const BASE_URL =
   import.meta.env.MODE === "development" ? "http://localhost:5001/api" : "/api";
 
 export const createGame = async (data: {
-  color: "white" | "black";
+  color: "w" | "b";
   time: string;
 }) => {
   const response = await fetch(`${BASE_URL}/createGame`, {
@@ -19,8 +19,8 @@ export const createGame = async (data: {
   return response.json();
 };
 
-export const startGame = async (gameId: string) => {
-  const response = await fetch(`${BASE_URL}/startGame/${gameId}`, {
+export const startGame = async (gameId: string, queryParams: string) => {
+  const response = await fetch(`${BASE_URL}/startGame/${gameId}?${queryParams}`, {
     credentials: "include",
   });
 

@@ -8,6 +8,7 @@ dotenv.config();
 export type GameCache = {
   users: Array<string>;
   board?: string;
+  gameStart: boolean;
 } & TimeT;
 
 const redis = new Redis({
