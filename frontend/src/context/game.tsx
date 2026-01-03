@@ -42,11 +42,14 @@ export const GameContextProvider = ({
   );
 
   const {
+    //@ts-ignore
     color: playerColor,
+    //@ts-ignore
     time: timeControl,
+    //@ts-ignore
     gameFen = new Chess().fen(),
   } = getGame<{
-    color: "white" | "black";
+    color: "w" | "b";
     time: string;
     gameFen: string;
   }>(gameId);
