@@ -191,6 +191,7 @@ export const GameContextProvider = ({
         startClock,
         clockTimes,
         chessPosition,
+        //@ts-ignore
         chessBoardOptions,
       }}
     >
