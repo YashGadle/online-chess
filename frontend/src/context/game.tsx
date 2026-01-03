@@ -27,7 +27,7 @@ export type GameContextT = {
   chessBoardOptions: ChessboardOptions;
 };
 
-const SOCKET_URL = "ws://localhost:5173/ws";
+const SOCKET_URL = `ws://${window.location.host}/ws`;
 const GameContext = createContext<GameContextT | undefined>(undefined);
 
 export const GameContextProvider = ({
