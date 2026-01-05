@@ -8,7 +8,7 @@ import (
 )
 
 func SetGuestSession(w http.ResponseWriter, r *http.Request) string {
-	cookie, err := r.Cookie("cookie")
+	cookie, err := r.Cookie("guest_id")
 	if err == nil {
 		return cookie.Value
 	}

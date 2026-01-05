@@ -17,13 +17,16 @@ var (
 	initErr error
 )
 
+type User struct {
+	Id    string `json:"id"`
+	Color string `json:"color"`
+}
 type RedisCache struct {
-	Users        []string `json:"users"`
-	GameStart    bool     `json:"gameStart"`
-	Board        string   `json:"board"`
-	WhiteTimeMs  int32    `json:"whiteTimeMs"`
-	BlackTimeMs  int32    `json:"blackTimeMs"`
-	LastMoveAtMs int32    `json:"lastMoveAtMs"`
+	Users        []User `json:"users"`
+	Board        string `json:"board"`
+	WhiteTimeMs  int32  `json:"whiteTimeMs"`
+	BlackTimeMs  int32  `json:"blackTimeMs"`
+	LastMoveAtMs int32  `json:"lastMoveAtMs"`
 }
 
 func Redis() (*redis.Client, error) {

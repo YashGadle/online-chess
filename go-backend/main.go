@@ -1,59 +1,19 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/gorilla/mux"
-	"github.com/gorilla/websocket"
 	"github.com/joho/godotenv"
 	"github.com/rs/cors"
+	"github.com/yashgadle/go-chess/common"
 	"github.com/yashgadle/go-chess/routes"
-	"github.com/yashgadle/go-chess/utils"
 )
 
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-}
-
-func wsEndpoint(w http.ResponseWriter, r *http.Request) {
-	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
-
-	ws, err := upgrader.Upgrade(w, r, nil)
-	userId, _ := utils.GetGuestSession(r)
-	log.Println(userId)
-	if err != nil {
-		log.Println("Failed to upgrade")
-	}
-
-	err = ws.WriteMessage(1, []byte("Successfully connected"))
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	log.Println("Client Connected")
-	reader(ws)
-}
-
-func reader(conn *websocket.Conn) {
-	for {
-		messageType, p, err := conn.ReadMessage()
-		if err != nil {
-			log.Println(err)
-			return
-		}
-
-		fmt.Println(string(p))
-
-		if err := conn.WriteMessage(messageType, p); err != nil {
-			log.Println(err)
-			return
-		}
-	}
-}
+// Holds client connections
+var GM = common.NewGameManager() //TODO: does not work with more than 1 instances
 
 func main() {
 	if err := godotenv.Load(); err != nil {
@@ -66,7 +26,7 @@ func main() {
 
 	r.HandleFunc("/api/createGame", routes.CreateGame).Methods("POST")
 	r.HandleFunc("/api/joinGame/{gameId}", routes.JoinGame).Methods("GET")
-	r.PathPrefix("/ws/").HandlerFunc(wsEndpoint)
+	r.PathPrefix("/ws/game/{gameId}").HandlerFunc(routes.WSEndpoint(GM))
 
 	handler := http.Handler(r)
 

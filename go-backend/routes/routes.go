@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"slices"
 	"time"
 
 	"github.com/google/uuid"
@@ -27,10 +26,6 @@ type CreateGameResponse struct {
 
 func CreateGame(w http.ResponseWriter, r *http.Request) {
 	var gameSettings GameType
-	if r.Method != "POST" {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
 
 	gameId := uuid.NewString()
 	body, err := io.ReadAll(r.Body)
@@ -53,9 +48,8 @@ func CreateGame(w http.ResponseWriter, r *http.Request) {
 	chess := chess.NewGame()
 	exp := 24 * time.Hour
 	cache := client.RedisCache{
-		Users:     []string{},
-		GameStart: false,
-		Board:     chess.FEN(),
+		Users: []client.User{},
+		Board: chess.FEN(),
 	}
 	err = client.SetVal(redis, r.Context(), gameId, cache, &exp)
 	if err != nil {
@@ -78,11 +72,6 @@ func CreateGame(w http.ResponseWriter, r *http.Request) {
 }
 
 func JoinGame(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
 	vars := mux.Vars(r)
 	gameId := vars["gameId"]
 
@@ -103,6 +92,7 @@ func JoinGame(w http.ResponseWriter, r *http.Request) {
 	}
 
 	timeControl := r.URL.Query().Get("time")
+	color := r.URL.Query().Get("color")
 	timeMs := utils.GetTime(utils.TimeControl(timeControl))
 	currentUsersInGame := gameCache.Users
 
@@ -116,14 +106,21 @@ func JoinGame(w http.ResponseWriter, r *http.Request) {
 		userId = utils.SetGuestSession(w, r)
 	}
 
-	push := !slices.Contains(currentUsersInGame, userId) // user hasn't already joined
+	push := true
+	for _, u := range currentUsersInGame {
+		if u.Id == userId {
+			push = false
+		}
+	}
 
 	if push || len(currentUsersInGame) == 0 {
-		currentUsersInGame = append(currentUsersInGame, userId)
+		currentUsersInGame = append(currentUsersInGame, client.User{
+			Id:    userId,
+			Color: color,
+		})
 		newCache := client.RedisCache{
 			Users:        currentUsersInGame,
 			Board:        gameCache.Board,
-			GameStart:    gameCache.GameStart,
 			WhiteTimeMs:  timeMs,
 			BlackTimeMs:  timeMs,
 			LastMoveAtMs: 0,

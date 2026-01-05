@@ -71,8 +71,10 @@ export const GameContextProvider = ({
   useEffect(() => {
     // WS handlers
     if (!lastMessage || !lastMessage.data) return;
-    const data = JSON.parse(lastMessage.data) as WSMessageT;
-    if (data.type === "signal" && data.message === "start_game") {
+    const data = JSON.parse(lastMessage.data);
+    console.log(data);
+
+    if (data.type === "start_game") {
       // both players connected
       setStartGame(true);
       setClockTimes({
@@ -81,7 +83,6 @@ export const GameContextProvider = ({
       });
       setStartClock(true);
     }
-    console.log(clockTimes);
     if (data && data.type && data.type === "move") {
       chessGame.move({ from: data.fromSquare, to: data.toSquare });
       setChessPosition(chessGame.fen());
