@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router";
 import Home from "./pages/home";
 import Game from "./pages/game";
 import Layout from "./components/layout";
-import StartGame from "./pages/start-game";
+import JoinGame from "./pages/join-game";
 
 import { GameContextProvider } from "./context/game";
 
@@ -20,10 +20,10 @@ function App() {
           }
         />
         <Route
-          path="/startGame/:gameId"
+          path="/joinGame/:gameId"
           element={
             <Layout>
-              <StartGame />
+              <JoinGame />
             </Layout>
           }
         />

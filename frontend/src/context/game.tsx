@@ -29,7 +29,7 @@ export type GameContextT = {
 
 const SOCKET_URL =
   import.meta.env.MODE === "development"
-    ? `ws://${window.location.host}/ws`
+    ? `ws://localhost:5001/ws`
     : `wss://${window.location.host}/ws`;
 const GameContext = createContext<GameContextT | undefined>(undefined);
 
@@ -43,7 +43,7 @@ export const GameContextProvider = ({
   const { sendJsonMessage, lastMessage, readyState } = useWebSocket(
     SOCKET_URL + "/game/" + gameId
   );
-  console.log(lastMessage);
+
   const {
     //@ts-ignore
     color: playerColor,
@@ -72,19 +72,16 @@ export const GameContextProvider = ({
     // WS handlers
     if (!lastMessage || !lastMessage.data) return;
     const data = JSON.parse(lastMessage.data) as WSMessageT;
-
     if (data.type === "signal" && data.message === "start_game") {
       // both players connected
       setStartGame(true);
-    } else if (data.type === "signal" && data.message === "start_clock") {
-      // first move has been made
       setClockTimes({
         whiteTimeMs: data.whiteTimeMs,
         blackTimeMs: data.blackTimeMs,
       });
       setStartClock(true);
     }
-
+    console.log(clockTimes);
     if (data && data.type && data.type === "move") {
       chessGame.move({ from: data.fromSquare, to: data.toSquare });
       setChessPosition(chessGame.fen());

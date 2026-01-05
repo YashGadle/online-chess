@@ -21,6 +21,8 @@ export const signalStartGame = (
         JSON.stringify({
           type: "signal",
           message: "start_game",
+          whiteTimeMs: game.whiteTimeMs,
+          blackTimeMs: game.blackTimeMs,
         } satisfies Extract<WSMessageT, { type: "signal" }>)
       );
     }
@@ -67,7 +69,7 @@ const handleChessGame = async (
 
   // Time calculation
   const turn = gameTurn(board),
-    elapsed = Date.now() - game.lastMoveAtMs;
+    elapsed = Date.now() - (game.lastMoveAtMs || 0);
   let newWhiteTimeMs = game.whiteTimeMs,
     newBlackTimeMs = game.blackTimeMs;
   if (turn === "w") {
@@ -105,33 +107,10 @@ const handleChessGame = async (
         fromSquare: fromSquare,
         toSquare: toSquare,
         board: newBoard,
-        newWhiteTimeMs,
-        newBlackTimeMs,
+        whiteTimeMs: newWhiteTimeMs,
+        blackTimeMs: newBlackTimeMs,
       })
     );
-
-    if (!game.gameStart) {
-      // first move has been made
-      playerClient.send(
-        JSON.stringify({
-          type: "signal",
-          message: "start_clock",
-          whiteTimeMs: game.whiteTimeMs,
-          blackTimeMs: game.blackTimeMs,
-          lastMoveAtMs: game.lastMoveAtMs, // not needed but just to make TS happy
-        } as WSMessageT)
-      );
-
-      oppClient.send(
-        JSON.stringify({
-          type: "signal",
-          message: "start_clock",
-          whiteTimeMs: game.whiteTimeMs,
-          blackTimeMs: game.blackTimeMs,
-          lastMoveAtMs: game.lastMoveAtMs, // not needed but just to make TS happy
-        } as WSMessageT)
-      );
-    }
   }
 };
 

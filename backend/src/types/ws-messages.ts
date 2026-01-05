@@ -1,14 +1,14 @@
 export type TimeT = {
   whiteTimeMs: number;
   blackTimeMs: number;
-  lastMoveAtMs: number;
+  lastMoveAtMs?: number;
 };
 
 export type WSMessageT =
-  | {
+  | ({
       type: "signal";
       message: "start_game";
-    }
+    } & TimeT)
   | ({
       type: "signal";
       message: "start_clock";

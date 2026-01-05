@@ -20,9 +20,9 @@ export const createGame = async (data: {
 };
 
 export const startGame = async (gameId: string, queryParams: string) => {
-  const response = await fetch(`${BASE_URL}/startGame/${gameId}?${queryParams}`, {
+  const response = await fetch(`${BASE_URL}/joinGame/${gameId}?${queryParams}`, {
     credentials: "include",
   });
 
-  return response.json();
+  return response;
 };

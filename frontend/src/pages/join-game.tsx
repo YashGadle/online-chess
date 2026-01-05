@@ -8,7 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import * as apiClient from "../utils/api-client";
 import useLocalStorage from "../hooks/useLocalStorage";
 
-const StartGame = () => {
+const JoinGame = () => {
   const { set, remove } = useLocalStorage();
 
   const navigate = useNavigate();
@@ -32,13 +32,13 @@ const StartGame = () => {
 
   useEffect(() => {
     if (!data) return remove(gameId);
-    if (data.success) navigate(`/play/${gameId}`);
+    if (data.ok) navigate(`/play/${gameId}`);
   }, [data]);
 
   if (isPending) return <div>Redirecting, please wait...</div>;
-  if (data && !data.success) return <div>{data.message}</div>;
+  if (data && !data.ok) return <div>Error </div>;
 
   return null;
 };
 
-export default StartGame;
+export default JoinGame;
