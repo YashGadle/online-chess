@@ -2,7 +2,6 @@ package utils
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 
 	"github.com/gorilla/websocket"
@@ -10,7 +9,24 @@ import (
 )
 
 func WriteSignal(p *common.Player, msgType common.MessageType, message any) {
-	payload, _ := json.Marshal(common.SignalPayload{Message: fmt.Sprint(message)})
+	var payload json.RawMessage
+
+	switch m := message.(type) {
+	case nil:
+		// leave payload nil
+	case json.RawMessage:
+		payload = m
+	case []byte:
+		payload = m
+	default:
+		b, err := json.Marshal(m)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		payload = b
+	}
+
 	data, err := json.Marshal(common.WSMessage{
 		Type: msgType,
 		Data: payload,

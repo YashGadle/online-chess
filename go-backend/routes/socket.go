@@ -142,16 +142,16 @@ func handleIncomingMessage(conn *websocket.Conn, r *http.Request, gm *common.Gam
 				return
 			}
 
-			chess := chess.NewGame(fenFunc)
-			err = chess.MoveStr(movePayload.FromSquare + movePayload.ToSquare)
+			game := chess.NewGame(fenFunc, chess.UseNotation(chess.UCINotation{}))
+			err = game.MoveStr(movePayload.FromSquare + movePayload.ToSquare)
 			if err != nil {
-				log.Println("invalid_move")
+				log.Println(err)
 				return
 			}
 
 			client.SetVal(redis, r.Context(), gameId, client.RedisCache{
 				Users:        gameCache.Users,
-				Board:        chess.FEN(),
+				Board:        game.FEN(),
 				WhiteTimeMs:  gameCache.WhiteTimeMs, //TODO: add time logic
 				BlackTimeMs:  gameCache.BlackTimeMs, //TODO: add time logic
 				LastMoveAtMs: gameCache.LastMoveAtMs,
@@ -162,18 +162,17 @@ func handleIncomingMessage(conn *websocket.Conn, r *http.Request, gm *common.Gam
 	}
 }
 
-func gameManager(
-	player *common.Player,
-	gameId string,
-	board string,
-	gm *common.GameManager,
-) {
+func gameManager(player *common.Player, gameId string, board string, gm *common.GameManager) {
 	game := gm.GetOrCreateGame(gameId, board)
 	game.AddPlayer(player)
 
 	if game.White != nil && game.Black != nil {
 		// both players connected. start game
-		utils.WriteSignal(game.White, common.MsgStartGame, nil)
-		utils.WriteSignal(game.Black, common.MsgStartGame, nil)
+		utils.WriteSignal(game.White, common.MsgStartGame, common.StartGamePayload{
+			Board: board,
+		})
+		utils.WriteSignal(game.Black, common.MsgStartGame, common.StartGamePayload{
+			Board: board,
+		})
 	}
 }

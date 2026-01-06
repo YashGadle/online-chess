@@ -14,11 +14,11 @@ func (g *Game) AddPlayer(p *Player) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 
-	if p.Color == "w" && g.White == nil {
+	if p.Color == "w" {
 		g.White = p
 	}
 
-	if p.Color == "b" && g.Black == nil {
+	if p.Color == "b" {
 		g.Black = p
 	}
 }

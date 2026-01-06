@@ -12,7 +12,7 @@ import type {
 
 import useLocalStorage from "../hooks/useLocalStorage";
 
-import type { WSMessageT } from "../../../backend/src/types/ws-messages";
+import type { WSMessageT } from "../types/web-socket";
 
 export type GameContextT = {
   gameId: string;
@@ -38,7 +38,7 @@ export const GameContextProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const { get: getGame, set: setGame } = useLocalStorage();
+  const { get: getGame } = useLocalStorage();
   const { gameId = "" } = useParams();
   const { sendJsonMessage, lastMessage, readyState } = useWebSocket(
     SOCKET_URL + "/game/" + gameId
@@ -71,26 +71,23 @@ export const GameContextProvider = ({
   useEffect(() => {
     // WS handlers
     if (!lastMessage || !lastMessage.data) return;
-    const data = JSON.parse(lastMessage.data);
-    console.log(data);
+    const data: WSMessageT = JSON.parse(lastMessage.data);
 
     if (data.type === "start_game") {
       // both players connected
       setStartGame(true);
-      setClockTimes({
-        whiteTimeMs: data.whiteTimeMs,
-        blackTimeMs: data.blackTimeMs,
-      });
-      setStartClock(true);
+      setChessPosition(data.data.board);
+
+      // TODO
+      // setClockTimes({
+      //   whiteTimeMs: data.whiteTimeMs,
+      //   blackTimeMs: data.blackTimeMs,
+      // });
+      // setStartClock(true);
     }
-    if (data && data.type && data.type === "move") {
-      chessGame.move({ from: data.fromSquare, to: data.toSquare });
+    if (data.type === "move") {
+      chessGame.move({ from: data.data.fromSquare, to: data.data.toSquare });
       setChessPosition(chessGame.fen());
-      setGame(gameId, {
-        color: playerColor,
-        time: timeControl,
-        gameFen: chessGame.fen(),
-      });
     }
   }, [lastMessage]);
 
@@ -105,22 +102,18 @@ export const GameContextProvider = ({
     try {
       sendJsonMessage({
         type: "move",
-        fromSquare: sourceSquare,
-        toSquare: targetSquare,
-        board: chessGame.fen(),
-        clientMoveTimeMs: Date.now(),
-      });
+        data: {
+          fromSquare: sourceSquare,
+          toSquare: targetSquare,
+          board: chessGame.fen(),
+          clientMoveTimeMs: Date.now(),
+        },
+      } as WSMessageT);
 
       chessGame.move({
         from: sourceSquare,
         to: targetSquare,
         promotion: "q",
-      });
-
-      setGame(gameId, {
-        color: playerColor,
-        time: timeControl,
-        gameFen: chessGame.fen(),
       });
 
       setActiveTurn(chessGame.turn());
