@@ -126,9 +126,9 @@ func handleIncomingMessage(conn *websocket.Conn, r *http.Request, gm *common.Gam
 
 		var opponentClient *common.Player
 		if opponent.Color == "w" {
-			opponentClient = gm.Games[gameId].Black
-		} else {
 			opponentClient = gm.Games[gameId].White
+		} else {
+			opponentClient = gm.Games[gameId].Black
 		}
 
 		// Move
