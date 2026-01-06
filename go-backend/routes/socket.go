@@ -145,6 +145,7 @@ func handleIncomingMessage(conn *websocket.Conn, r *http.Request, gm *common.Gam
 			game := chess.NewGame(fenFunc, chess.UseNotation(chess.UCINotation{}))
 			err = game.MoveStr(movePayload.FromSquare + movePayload.ToSquare)
 			if err != nil {
+				// invalid move probably
 				log.Println(err)
 				return
 			}

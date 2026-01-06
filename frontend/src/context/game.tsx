@@ -100,6 +100,12 @@ export const GameContextProvider = ({
     }
 
     try {
+      chessGame.move({
+        from: sourceSquare,
+        to: targetSquare,
+        promotion: "q",
+      });
+
       sendJsonMessage({
         type: "move",
         data: {
@@ -109,12 +115,6 @@ export const GameContextProvider = ({
           clientMoveTimeMs: Date.now(),
         },
       } as WSMessageT);
-
-      chessGame.move({
-        from: sourceSquare,
-        to: targetSquare,
-        promotion: "q",
-      });
 
       setActiveTurn(chessGame.turn());
       setChessPosition(chessGame.fen());
