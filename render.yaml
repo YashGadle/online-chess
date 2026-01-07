@@ -12,9 +12,11 @@ services:
 
     buildCommand: make build
 
-    startCommand: cd go-backend && ./app
+    startCommand: make start
 
     envVars:
+      - key: GO_VERSION
+        value: 1.25.5
       - key: APP_ENV
         value: production
       - key: REDIS_URL
