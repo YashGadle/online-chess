@@ -1,7 +1,5 @@
 import { useEffect } from "react";
 
-import { Chess } from "chess.js";
-
 import { useLocation, useNavigate, useParams } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 
