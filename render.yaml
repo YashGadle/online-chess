@@ -1,0 +1,41 @@
+services:
+  # =========================
+  # GO BACKEND (API)
+  # =========================
+  - type: web
+    name: online-chess-go
+    env: go
+    plan: free
+    region: mumbai
+
+    rootDir: go-backend
+
+    buildCommand: |
+      go mod download
+      go build -o app
+
+    startCommand: ./app
+
+    envVars:
+      - key: GO_ENV
+        value: production
+
+  # =========================
+  # FRONTEND (STATIC)
+  # =========================
+  - type: static
+    name: online-chess-react
+    plan: free
+    region: mumbai
+
+    rootDir: frontend
+
+    buildCommand: |
+      npm install
+      npm run build
+
+    staticPublishPath: dist
+
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://go-backend.onrender.com

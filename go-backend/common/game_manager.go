@@ -29,3 +29,9 @@ func (gm *GameManager) GetOrCreateGame(gameId string, board string) *Game {
 	}
 	return game
 }
+
+func (gm *GameManager) GetGame(gameId string) *Game {
+	gm.mu.Lock()
+	defer gm.mu.Unlock()
+	return gm.Games[gameId]
+}

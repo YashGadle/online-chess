@@ -46,7 +46,12 @@ func Redis() (*redis.Client, error) {
 	return rdb, initErr
 }
 
-func SetVal(client *redis.Client, ctx context.Context, key string, val RedisCache, exp *time.Duration) error {
+func SetVal(ctx context.Context, key string, val RedisCache, exp *time.Duration) error {
+	client, err := Redis()
+	if err != nil {
+		return err
+	}
+
 	data, err := json.Marshal(val)
 	if err != nil {
 		return err
@@ -61,7 +66,12 @@ func SetVal(client *redis.Client, ctx context.Context, key string, val RedisCach
 
 	return cmd.Err()
 }
-func GetVal(client *redis.Client, ctx context.Context, key string) (*RedisCache, error) {
+func GetVal(ctx context.Context, key string) (*RedisCache, error) {
+	client, err := Redis()
+	if err != nil {
+		return nil, err
+	}
+
 	data, err := client.Get(ctx, key).Result()
 	if err != nil {
 		return nil, err
@@ -72,4 +82,24 @@ func GetVal(client *redis.Client, ctx context.Context, key string) (*RedisCache,
 		return nil, err
 	}
 	return &gameCache, nil
+}
+
+// PubSub functions for cross-instance communication
+func PublishGameEvent(ctx context.Context, gameId string, event []byte) error {
+	client, err := Redis()
+	if err != nil {
+		return err
+	}
+	channel := "game:" + gameId
+	return client.Publish(ctx, channel, event).Err()
+}
+
+func SubscribeToGame(ctx context.Context, gameId string) (*redis.PubSub, error) {
+	client, err := Redis()
+	if err != nil {
+		return nil, err
+	}
+	channel := "game:" + gameId
+	pubsub := client.Subscribe(ctx, channel)
+	return pubsub, nil
 }

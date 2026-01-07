@@ -36,3 +36,11 @@ type WSMessage struct {
 	Type MessageType     `json:"type"`
 	Data json.RawMessage `json:"data,omitempty"`
 }
+
+// PubSubEvent represents an event published to Redis pub/sub
+type PubSubEvent struct {
+	Type       MessageType     `json:"type"`
+	Data       json.RawMessage `json:"data,omitempty"`
+	GameId     string          `json:"gameId"`
+	FromUserId string          `json:"fromUserId,omitempty"` // to avoid echo back to sender
+}
