@@ -10,7 +10,7 @@ import type {
   ChessboardOptions,
 } from "react-chessboard";
 
-import useLocalStorage from "../hooks/useLocalStorage";
+import { useAppContext } from "./app";
 
 import type { WSMessageT } from "../types/web-socket";
 
@@ -38,25 +38,13 @@ export const GameContextProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const { get: getGame } = useLocalStorage();
+  const appContext = useAppContext();
   const { gameId = "" } = useParams();
   const { sendJsonMessage, lastMessage, readyState } = useWebSocket(
     SOCKET_URL + "/game/" + gameId
   );
 
-  const {
-    //@ts-ignore
-    color: playerColor,
-    //@ts-ignore
-    time: timeControl,
-    //@ts-ignore
-    gameFen = new Chess().fen(),
-  } = getGame<{
-    color: "w" | "b";
-    time: string;
-    gameFen: string;
-  }>(gameId);
-  const chessGame = useRef(new Chess(gameFen)).current;
+  const chessGame = useRef(new Chess()).current;
 
   const [startGame, setStartGame] = useState(false);
   const [startClock] = useState(false);
@@ -66,17 +54,18 @@ export const GameContextProvider = ({
   });
   const [squareStyles, setSquareStyles] = useState({});
   const [chessPosition, setChessPosition] = useState(chessGame.fen());
+  const [playerColor, setPlayerColor] = useState<"w" | "b">("w");
   const [activeTurn, setActiveTurn] = useState(chessGame.turn());
 
   useEffect(() => {
-    // WS handlers
     if (!lastMessage || !lastMessage.data) return;
     const data: WSMessageT = JSON.parse(lastMessage.data);
 
     if (data.type === "start_game") {
-      // both players connected
       setStartGame(true);
       setChessPosition(data.data.board);
+      setPlayerColor(data.data.playerColor);
+      chessGame.load(data.data.board);
 
       // TODO
       // setClockTimes({
@@ -86,8 +75,15 @@ export const GameContextProvider = ({
       // setStartClock(true);
     }
     if (data.type === "move") {
-      chessGame.move({ from: data.data.fromSquare, to: data.data.toSquare });
-      setChessPosition(chessGame.fen());
+      try {
+        chessGame.move({ from: data.data.fromSquare, to: data.data.toSquare });
+        setChessPosition(chessGame.fen());
+      } catch (error) {
+        appContext.showToast({
+          type: "error",
+          message: "Invalid move",
+        });
+      }
     }
   }, [lastMessage]);
 
@@ -121,7 +117,7 @@ export const GameContextProvider = ({
       setSquareStyles({});
 
       return true;
-    } catch {
+    } catch (err) {
       return false;
     }
   };

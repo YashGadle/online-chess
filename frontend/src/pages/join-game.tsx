@@ -16,14 +16,7 @@ const JoinGame = () => {
   const { search } = useLocation();
   const searchParams = new URLSearchParams(search);
 
-  const playerColor = searchParams.get("color");
-  const gameTimeControl = searchParams.get("time");
-
-  set(gameId, {
-    color: playerColor,
-    time: gameTimeControl,
-    gameFen: new Chess().fen(),
-  });
+  set(gameId, {});
 
   const { data, isPending } = useQuery({
     queryKey: ["startGame"],

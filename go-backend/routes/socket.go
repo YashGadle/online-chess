@@ -160,7 +160,8 @@ func gameManager(player *common.Player, gameId string, board string, gm *common.
 	if game.White != nil && game.Black != nil {
 		// both players connected. start game
 		startGamePayload := common.StartGamePayload{
-			Board: board,
+			Board:       board,
+			PlayerColor: player.Color,
 		}
 
 		// Publish start_game event to Redis pub/sub
@@ -274,10 +275,23 @@ func (psm *PubSubManager) forwardEvent(event common.PubSubEvent) {
 			continue
 		}
 
+		// For start_game events, customize the payload with each player's color
+		var dataToSend json.RawMessage = event.Data
+		if event.Type == common.MsgStartGame {
+			var startGamePayload common.StartGamePayload
+			if err := json.Unmarshal(event.Data, &startGamePayload); err == nil {
+				// Set the player's actual color instead of the generic one
+				startGamePayload.PlayerColor = player.Color
+				if customData, err := json.Marshal(startGamePayload); err == nil {
+					dataToSend = customData
+				}
+			}
+		}
+
 		// Create WSMessage and send
 		wsMsg := common.WSMessage{
 			Type: event.Type,
-			Data: event.Data,
+			Data: dataToSend,
 		}
 		msgBytes, err := json.Marshal(wsMsg)
 		if err != nil {

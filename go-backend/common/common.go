@@ -24,7 +24,8 @@ type MovePayload struct {
 }
 
 type StartGamePayload struct {
-	Board string `json:"board"`
+	Board       string      `json:"board"`
+	PlayerColor PlayerColor `json:"playerColor"`
 }
 
 type TimePayload struct {

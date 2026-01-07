@@ -24,6 +24,7 @@ type User struct {
 type RedisCache struct {
 	Users        []User `json:"users"`
 	Board        string `json:"board"`
+	GameEnd      bool   `json:"gameEnd"`
 	WhiteTimeMs  int32  `json:"whiteTimeMs"`
 	BlackTimeMs  int32  `json:"blackTimeMs"`
 	LastMoveAtMs int32  `json:"lastMoveAtMs"`

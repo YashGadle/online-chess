@@ -16,8 +16,6 @@ func WriteSignal(p *common.Player, msgType common.MessageType, message any) {
 		// leave payload nil
 	case json.RawMessage:
 		payload = m
-	case []byte:
-		payload = m
 	default:
 		b, err := json.Marshal(m)
 		if err != nil {

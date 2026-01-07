@@ -33,6 +33,7 @@ export type MovePayload = {
 // Payload for starting a game (based on Go's StartGamePayload)
 export type StartGamePayload = {
   board: string;
+  playerColor: "w" | "b";
   whiteTimeMs?: number;
   blackTimeMs?: number;
 };
