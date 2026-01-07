@@ -5,3 +5,10 @@
 *.sw?
 
 .env
+
+# Copied frontend dist during build
+go-backend/frontend/
+
+# Build artifacts
+go-backend/bin/
+go-backend/app

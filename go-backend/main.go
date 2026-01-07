@@ -15,12 +15,6 @@ import (
 	"github.com/yashgadle/go-chess/routes"
 )
 
-/*
-Embed frontend build output
-IMPORTANT:
-- frontend/dist MUST exist at build time
-*/
-
 var embeddedFiles embed.FS
 
 // Holds client connections
@@ -37,6 +31,7 @@ func main() {
 
 	r := mux.NewRouter()
 
+	r.HandleFunc("/api/health", routes.HealthCheck).Methods("GET")
 	r.HandleFunc("/api/createGame", routes.CreateGame).Methods("POST")
 	r.HandleFunc("/api/joinGame/{gameId}", routes.JoinGame).Methods("GET")
 	r.PathPrefix("/ws/game/{gameId}").HandlerFunc(routes.WSEndpoint(GM))
@@ -79,7 +74,12 @@ func main() {
 		log.Println("PROD mode detected: CORS disabled or restricted")
 	}
 
-	log.Fatal(http.ListenAndServe(":5001", handler))
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "5001"
+	}
+	log.Printf("Server starting on port %s", port)
+	log.Fatal(http.ListenAndServe(":"+port, handler))
 }
 
 func fsSub(fsys embed.FS, dir string) (http.FileSystem, error) {

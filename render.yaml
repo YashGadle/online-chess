@@ -1,6 +1,6 @@
 services:
   # =========================
-  # GO BACKEND (API)
+  # GO BACKEND (API) with embedded frontend
   # =========================
   - type: web
     name: online-chess-go
@@ -8,34 +8,17 @@ services:
     plan: free
     region: mumbai
 
-    rootDir: go-backend
+    rootDir: ./
 
-    buildCommand: |
-      go mod download
-      go build -o app
+    buildCommand: make build
 
-    startCommand: ./app
+    startCommand: cd go-backend && ./app
 
     envVars:
-      - key: GO_ENV
+      - key: APP_ENV
         value: production
+      - key: REDIS_URL
+        sync: false  # Set this in Render dashboard
 
-  # =========================
-  # FRONTEND (STATIC)
-  # =========================
-  - type: static
-    name: online-chess-react
-    plan: free
-    region: mumbai
-
-    rootDir: frontend
-
-    buildCommand: |
-      npm install
-      npm run build
-
-    staticPublishPath: dist
-
-    envVars:
-      - key: VITE_API_BASE_URL
-        value: https://go-backend.onrender.com
+    # Health check endpoint
+    healthCheckPath: /api/health
