@@ -6,7 +6,6 @@ services:
     name: online-chess-go
     env: go
     plan: free
-    region: mumbai
 
     rootDir: ./
 
