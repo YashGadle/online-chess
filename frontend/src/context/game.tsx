@@ -59,8 +59,8 @@ export const GameContextProvider = ({
   const chessGame = useRef(new Chess(gameFen)).current;
 
   const [startGame, setStartGame] = useState(false);
-  const [startClock, setStartClock] = useState(false);
-  const [clockTimes, setClockTimes] = useState({
+  const [startClock] = useState(false);
+  const [clockTimes] = useState({
     whiteTimeMs: 0,
     blackTimeMs: 0,
   });
