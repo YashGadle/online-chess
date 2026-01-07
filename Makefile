@@ -46,7 +46,7 @@ build-backend: prepare-embed
 	@echo "Backend build complete: $(BACKEND_DIR)/app"
 
 # Run the application locally
-run: build-backend
+run:
 	@echo "Starting server..."
 	cd $(BACKEND_DIR) && ./app
 
