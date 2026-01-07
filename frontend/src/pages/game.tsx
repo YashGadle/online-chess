@@ -29,17 +29,16 @@ const Game = () => {
   }
 
   const BlockingOverlay = () => (
-    <div className="h-full w-full absolute z-2 bg-black/50 flex justify-center items-center">
-      <span className="text-3xl">Waiting for opponent</span>
+    <div className="absolute inset-0 z-10 bg-black/50 flex justify-center items-center rounded-lg">
+      <span className="text-3xl text-white">Waiting for opponent</span>
     </div>
   );
 
   if (!gameId) return null;
   return (
-    <div className="flex flex-col justify-center items-center">
-      <div className="h-[50%] w-[50%] relative">
-        {(readyState !== ReadyState.OPEN || !startGame) && <BlockingOverlay />}
-        <div>
+    <div className="flex flex-col justify-center items-center min-h-screen p-4">
+      <div className="relative w-full max-w-[min(90vw,90vh,600px)]">
+        <div className="flex flex-col gap-2 relative">
           {startGame && (
             // opponent's clock
             <Clock
@@ -51,7 +50,10 @@ const Game = () => {
               }
             />
           )}
-          <Chessboard options={chessBoardOptions} />
+          <div className="relative w-full aspect-square">
+            {(readyState !== ReadyState.OPEN || !startGame) && <BlockingOverlay />}
+            <Chessboard options={chessBoardOptions} />
+          </div>
           {startGame && (
             // player's clock
             <Clock
