@@ -51,7 +51,9 @@ const Game = () => {
             />
           )}
           <div className="relative w-full aspect-square">
-            {(readyState !== ReadyState.OPEN || !startGame) && <BlockingOverlay />}
+            {(readyState !== ReadyState.OPEN || !startGame) && (
+              <BlockingOverlay />
+            )}
             <Chessboard options={chessBoardOptions} />
           </div>
           {startGame && (

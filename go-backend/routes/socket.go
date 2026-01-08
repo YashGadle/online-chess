@@ -125,11 +125,26 @@ func handleIncomingMessage(conn *websocket.Conn, r *http.Request, gameId string,
 			}
 
 			game := chess.NewGame(fenFunc, chess.UseNotation(chess.UCINotation{}))
+
+			// Make move
 			err = game.MoveStr(movePayload.FromSquare + movePayload.ToSquare)
 			if err != nil {
 				// invalid move probably
 				log.Println(err)
 				return
+			}
+
+			// Check if game has ended
+			if game.Outcome() != chess.NoOutcome {
+				log.Println("Game has ended")
+				client.SetVal(r.Context(), gameId, client.RedisCache{
+					Users:        gameCache.Users,
+					Board:        game.FEN(),
+					GameEnd:      true,
+					WhiteTimeMs:  gameCache.WhiteTimeMs,  // TODO
+					BlackTimeMs:  gameCache.BlackTimeMs,  // TODO
+					LastMoveAtMs: gameCache.LastMoveAtMs, // TODO
+				}, nil)
 			}
 
 			client.SetVal(r.Context(), gameId, client.RedisCache{
