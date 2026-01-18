@@ -1,0 +1,18 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build-frontend-for-debug",
+            "type": "shell",
+            "command": "make build-frontend && mkdir -p go-backend/frontend/dist && cp -r frontend/dist/* go-backend/frontend/dist/ 2>/dev/null || (mkdir -p go-backend/frontend/dist && touch go-backend/frontend/dist/.placeholder)",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "silent",
+                "panel": "dedicated"
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            }
+        }
+    ]
+}

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/gorilla/mux"
@@ -126,6 +127,57 @@ func handleIncomingMessage(conn *websocket.Conn, r *http.Request, gameId string,
 
 			game := chess.NewGame(fenFunc, chess.UseNotation(chess.UCINotation{}))
 
+			//	Clock logic
+			now := time.Now().UnixMilli()
+			turn := game.Position().Turn()
+			whiteTimeMs := gameCache.WhiteTimeMs
+			blackTimeMs := gameCache.BlackTimeMs
+			lastMoveAtMs := now
+
+			// Handle first move (LastMoveAtMs is 0) - don't deduct time
+			if gameCache.LastMoveAtMs == 0 {
+				// First move: just set the timestamp, don't deduct time
+				client.UpdateVal(r.Context(), gameId, client.UpdateOptions{
+					LastMoveAtMs: &lastMoveAtMs,
+				}, nil)
+			} else {
+				// Calculate move time for subsequent moves
+				moveTimeMs := now - gameCache.LastMoveAtMs
+
+				if turn == chess.White {
+					if moveTimeMs > gameCache.WhiteTimeMs {
+						log.Println("White lost on time")
+						gameEnd := true
+						whiteTimeMs = int64(0)
+						board := game.FEN()
+						client.UpdateVal(r.Context(), gameId, client.UpdateOptions{
+							Board:        &board,
+							GameEnd:      &gameEnd,
+							WhiteTimeMs:  &whiteTimeMs,
+							LastMoveAtMs: &lastMoveAtMs,
+						}, nil)
+						return
+					}
+
+					whiteTimeMs -= moveTimeMs
+				} else {
+					if moveTimeMs > gameCache.BlackTimeMs {
+						log.Println("Black lost on time")
+						gameEnd := true
+						blackTimeMs := int64(0)
+						board := game.FEN()
+						client.UpdateVal(r.Context(), gameId, client.UpdateOptions{
+							Board:        &board,
+							GameEnd:      &gameEnd,
+							BlackTimeMs:  &blackTimeMs,
+							LastMoveAtMs: &lastMoveAtMs,
+						}, nil)
+						return
+					}
+					blackTimeMs -= moveTimeMs
+				}
+			}
+
 			// Make move
 			err = game.MoveStr(movePayload.FromSquare + movePayload.ToSquare)
 			if err != nil {
@@ -137,31 +189,39 @@ func handleIncomingMessage(conn *websocket.Conn, r *http.Request, gameId string,
 			// Check if game has ended
 			if game.Outcome() != chess.NoOutcome {
 				log.Println("Game has ended")
-				client.SetVal(r.Context(), gameId, client.RedisCache{
-					Users:        gameCache.Users,
-					Board:        game.FEN(),
-					GameEnd:      true,
-					WhiteTimeMs:  gameCache.WhiteTimeMs,  // TODO
-					BlackTimeMs:  gameCache.BlackTimeMs,  // TODO
-					LastMoveAtMs: gameCache.LastMoveAtMs, // TODO
+				board := game.FEN()
+				gameEnd := true
+				client.UpdateVal(r.Context(), gameId, client.UpdateOptions{
+					Board:        &board,
+					GameEnd:      &gameEnd,
+					WhiteTimeMs:  &whiteTimeMs,
+					BlackTimeMs:  &blackTimeMs,
+					LastMoveAtMs: &lastMoveAtMs,
 				}, nil)
 			}
 
-			client.SetVal(r.Context(), gameId, client.RedisCache{
-				Users:        gameCache.Users,
-				Board:        game.FEN(),
-				WhiteTimeMs:  gameCache.WhiteTimeMs, //TODO: add time logic
-				BlackTimeMs:  gameCache.BlackTimeMs, //TODO: add time logic
-				LastMoveAtMs: gameCache.LastMoveAtMs,
+			board := game.FEN()
+			client.UpdateVal(r.Context(), gameId, client.UpdateOptions{
+				Board:        &board,
+				WhiteTimeMs:  &whiteTimeMs,
+				BlackTimeMs:  &blackTimeMs,
+				LastMoveAtMs: &lastMoveAtMs,
 			}, nil)
 
-			// Publish move event to Redis pub/sub
+			// Publish move event to Redis pub/sub with clock times
+			movePayloadWithTime := common.MovePayload{
+				FromSquare:  movePayload.FromSquare,
+				ToSquare:    movePayload.ToSquare,
+				WhiteTimeMs: whiteTimeMs,
+				BlackTimeMs: blackTimeMs,
+			}
+			moveData, _ := json.Marshal(movePayloadWithTime)
 			event := common.PubSubEvent{
 				Type:       common.MsgMove,
 				GameId:     gameId,
 				FromUserId: userId,
 			}
-			event.Data = WSMessage.Data
+			event.Data = moveData
 			eventBytes, _ := json.Marshal(event)
 			client.PublishGameEvent(r.Context(), gameId, eventBytes)
 		}

@@ -45,7 +45,7 @@ func CreateGame(w http.ResponseWriter, r *http.Request) {
 		Users: []client.User{},
 		Board: chess.FEN(),
 	}
-	err = client.SetVal(r.Context(), gameId, cache, &exp)
+	err = client.CreateGame(r.Context(), gameId, cache, &exp)
 	if err != nil {
 		http.Error(w, "Error Writing to Redis", http.StatusInternalServerError)
 		return
@@ -106,15 +106,14 @@ func JoinGame(w http.ResponseWriter, r *http.Request) {
 			Id:    userId,
 			Color: color,
 		})
-		newCache := client.RedisCache{
-			Users:        currentUsersInGame,
-			Board:        gameCache.Board,
-			WhiteTimeMs:  timeMs,
-			BlackTimeMs:  timeMs,
-			LastMoveAtMs: 0,
-		}
-
-		err := client.SetVal(r.Context(), gameId, newCache, nil)
+		timeMs64 := timeMs
+		lastMoveAtMs := int64(0)
+		err := client.UpdateVal(r.Context(), gameId, client.UpdateOptions{
+			Users:        &currentUsersInGame,
+			WhiteTimeMs:  &timeMs64,
+			BlackTimeMs:  &timeMs64,
+			LastMoveAtMs: &lastMoveAtMs,
+		}, nil)
 		if err != nil {
 			http.Error(w, "Error Writing to Redis", http.StatusInternalServerError)
 			return

@@ -19,8 +19,10 @@ type SignalPayload struct {
 }
 
 type MovePayload struct {
-	FromSquare string `json:"fromSquare"`
-	ToSquare   string `json:"toSquare"`
+	FromSquare  string `json:"fromSquare"`
+	ToSquare    string `json:"toSquare"`
+	WhiteTimeMs int64  `json:"whiteTimeMs,omitempty"`
+	BlackTimeMs int64  `json:"blackTimeMs,omitempty"`
 }
 
 type StartGamePayload struct {

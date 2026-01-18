@@ -8,7 +8,7 @@ const (
 	Time5_3   TimeControl = "5|3"
 )
 
-func GetTime(time TimeControl) int32 {
+func GetTime(time TimeControl) int64 {
 	switch time {
 	case Time15_10:
 		return 15 * 60 * 1000
