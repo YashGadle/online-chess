@@ -38,6 +38,7 @@ func WriteSignal(p *common.Player, msgType common.MessageType, message any) {
 	p.Send <- data
 }
 
+// Only one writer per connection. gorilla/websocket does not support multiple writers.
 func StartWriter(p *common.Player) {
 	go func() {
 		for msg := range p.Send {

@@ -13,6 +13,7 @@ import (
 	"github.com/rs/cors"
 	"github.com/yashgadle/go-chess/common"
 	"github.com/yashgadle/go-chess/routes"
+	"github.com/yashgadle/go-chess/utils"
 )
 
 //go:embed frontend/dist/*
@@ -36,7 +37,7 @@ func main() {
 
 // initApp initializes application dependencies
 func initApp() {
-	routes.GetPubSubManager(GM)
+	utils.GetPubSubManager(GM)
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found, using system env vars")
 	}
