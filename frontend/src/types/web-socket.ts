@@ -6,21 +6,30 @@ export type WSMsgType = "signal" | "move" | "start_game";
 // Main WSMessage type (based on Go's common.WSMessage)
 export type WSMessageT =
   | {
-      type: "signal";
-      data: SignalPayload; // data is typically parsed further depending on type
-    }
+    type: "signal";
+    data: SignalPayload; // data is typically parsed further depending on type
+  } | {
+    type: "start_clock";
+    data: StartClockPayload;
+  }
   | {
-      type: "move";
-      data: MovePayload;
-    }
+    type: "move";
+    data: MovePayload;
+  }
   | {
-      type: "start_game";
-      data: StartGamePayload;
-    };
+    type: "start_game";
+    data: StartGamePayload;
+  };
 
 export type SignalPayload = {
   message: string;
 };
+
+export type StartClockPayload = {
+  whiteTimeMs: number;
+  blackTimeMs: number;
+  lastMoveAtMs: number;
+}
 
 // Payload for a move (matching Go's MovePayload)
 export type MovePayload = {

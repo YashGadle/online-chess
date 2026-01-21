@@ -42,12 +42,12 @@ const Game = () => {
           {startGame && (
             // opponent's clock
             <Clock
-              paused={activeTurn !== opponentColor && startClock}
               timeMs={
                 opponentColor === "w"
                   ? clockTimes.whiteTimeMs
                   : clockTimes.blackTimeMs
               }
+              isRunning={startClock && activeTurn === opponentColor}
             />
           )}
           <div className="relative w-full aspect-square">
@@ -59,12 +59,12 @@ const Game = () => {
           {startGame && (
             // player's clock
             <Clock
-              paused={activeTurn !== playerColor && startClock}
               timeMs={
                 playerColor === "w"
                   ? clockTimes.whiteTimeMs
                   : clockTimes.blackTimeMs
               }
+              isRunning={startClock && activeTurn === playerColor}
             />
           )}
         </div>

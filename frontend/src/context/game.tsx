@@ -47,8 +47,8 @@ export const GameContextProvider = ({
   const chessGame = useRef(new Chess()).current;
 
   const [startGame, setStartGame] = useState(false);
-  const [startClock] = useState(false);
-  const [clockTimes] = useState({
+  const [startClock, setStartClock] = useState(false);
+  const [clockTimes, setClockTimes] = useState({
     whiteTimeMs: 0,
     blackTimeMs: 0,
   });
@@ -67,17 +67,38 @@ export const GameContextProvider = ({
       setPlayerColor(data.data.playerColor);
       chessGame.load(data.data.board);
 
-      // TODO
-      // setClockTimes({
-      //   whiteTimeMs: data.whiteTimeMs,
-      //   blackTimeMs: data.blackTimeMs,
-      // });
-      // setStartClock(true);
+    }
+    if (data.type === "start_clock") {
+      const lastMoveAtMs = data.data.lastMoveAtMs || 0;
+      const whiteTimeMs = data.data.whiteTimeMs || 0;
+      const blackTimeMs = data.data.blackTimeMs || 0;
+      if (lastMoveAtMs === 0) {
+        // First move has been made, so we don't need to deduct time
+        setClockTimes({
+          whiteTimeMs: whiteTimeMs,
+          blackTimeMs: blackTimeMs,
+        });
+      } else {
+        if (activeTurn === "w") {
+          setClockTimes({
+            whiteTimeMs: whiteTimeMs - (Date.now() - lastMoveAtMs),
+            blackTimeMs: blackTimeMs,
+          });
+        } else {
+          setClockTimes({
+            whiteTimeMs: whiteTimeMs,
+            blackTimeMs: blackTimeMs - (Date.now() - lastMoveAtMs),
+          });
+        }
+      }
+
+      setStartClock(true);
     }
     if (data.type === "move") {
       try {
         chessGame.move({ from: data.data.fromSquare, to: data.data.toSquare });
         setChessPosition(chessGame.fen());
+        setActiveTurn(chessGame.turn());
       } catch (error) {
         appContext.showToast({
           type: "error",

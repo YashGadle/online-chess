@@ -30,9 +30,10 @@ type StartGamePayload struct {
 	PlayerColor PlayerColor `json:"playerColor"`
 }
 
-type TimePayload struct {
-	WhiteTimeMs int64 `json:"whiteTimeMs"`
-	BlackTimeMs int64 `json:"blackTimeMs"`
+type StartClockPayload struct {
+	WhiteTimeMs  int64 `json:"whiteTimeMs"`
+	BlackTimeMs  int64 `json:"blackTimeMs"`
+	LastMoveAtMs int64 `json:"lastMoveAtMs,omitempty"`
 }
 
 type WSMessage struct {

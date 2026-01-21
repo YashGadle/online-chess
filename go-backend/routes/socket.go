@@ -55,7 +55,7 @@ func WSEndpoint(gm *common.GameManager) http.HandlerFunc {
 			return
 		}
 
-		val, err := client.GetVal(r.Context(), gameId)
+		gameCache, err := client.GetVal(r.Context(), gameId)
 		if err != nil {
 			ws.Close()
 			log.Println("Game not found")
@@ -63,7 +63,7 @@ func WSEndpoint(gm *common.GameManager) http.HandlerFunc {
 		}
 
 		var user client.User
-		for _, u := range val.Users {
+		for _, u := range gameCache.Users {
 			if u.Id == userId {
 				user = u
 			}
@@ -78,12 +78,22 @@ func WSEndpoint(gm *common.GameManager) http.HandlerFunc {
 
 		utils.StartWriter(player)
 
+		if gameCache.LastMoveAtMs != 0 {
+			// Also start clocks if the game has already started
+			startClockPayload := common.StartClockPayload{
+				WhiteTimeMs:  gameCache.WhiteTimeMs,
+				BlackTimeMs:  gameCache.BlackTimeMs,
+				LastMoveAtMs: gameCache.LastMoveAtMs,
+			}
+			utils.WriteSignal(player, common.MsgStartClock, startClockPayload)
+		}
+
 		// Client connected
 		utils.WriteSignal(player, common.MsgSignal, common.SignalPayload{
 			Message: "connected",
 		})
 
-		gameManager(player, gameId, val.Board, gm)
+		gameManager(player, gameId, gameCache.Board, gm)
 
 		// Subscribe to game events via pub/sub
 		psm := utils.GetPubSubManager(gm)
@@ -140,6 +150,36 @@ func handleIncomingMessage(conn *websocket.Conn, r *http.Request, gameId string,
 				client.UpdateVal(r.Context(), gameId, client.UpdateOptions{
 					LastMoveAtMs: &lastMoveAtMs,
 				}, nil)
+
+				startClockPayload := common.StartClockPayload{
+					WhiteTimeMs:  gameCache.WhiteTimeMs,
+					BlackTimeMs:  gameCache.BlackTimeMs,
+					LastMoveAtMs: gameCache.LastMoveAtMs,
+				}
+				startClockPayloadBytes, err := json.Marshal(startClockPayload)
+				if err != nil {
+					log.Println("Error marshalling start clock payload")
+					return
+				}
+
+				startClockEvent := common.PubSubEvent{
+					Type:   common.MsgStartClock,
+					GameId: gameId,
+					Data:   startClockPayloadBytes,
+				}
+
+				startClockEventBytes, err := json.Marshal(startClockEvent)
+				if err != nil {
+					log.Println("Error marshalling start clock event")
+					return
+				}
+
+				err = client.PublishGameEvent(client.Ctx, gameId, startClockEventBytes)
+				if err != nil {
+					log.Println("Error publishing start clock event to Redis pub/sub")
+					return
+				}
+
 			} else {
 				// Calculate move time for subsequent moves
 				moveTimeMs := now - gameCache.LastMoveAtMs
@@ -158,8 +198,8 @@ func handleIncomingMessage(conn *websocket.Conn, r *http.Request, gameId string,
 						}, nil)
 						return
 					}
-
 					whiteTimeMs -= moveTimeMs
+
 				} else {
 					if moveTimeMs > gameCache.BlackTimeMs {
 						log.Println("Black lost on time")
