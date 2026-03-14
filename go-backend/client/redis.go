@@ -1,3 +1,4 @@
+// package client Redis client utils
 package client
 
 import (
@@ -24,6 +25,7 @@ type User struct {
 type RedisCache struct {
 	Users        []User `json:"users"`
 	Board        string `json:"board"`
+	PGN          string `json:"pgn"`
 	GameEnd      bool   `json:"gameEnd"`
 	WhiteTimeMs  int64  `json:"whiteTimeMs"`
 	BlackTimeMs  int64  `json:"blackTimeMs"`
@@ -36,6 +38,7 @@ type RedisCache struct {
 type UpdateOptions struct {
 	Users        *[]User
 	Board        *string
+	PGN          *string
 	GameEnd      *bool
 	WhiteTimeMs  *int64
 	BlackTimeMs  *int64
@@ -80,6 +83,7 @@ func setVal(ctx context.Context, key string, val RedisCache, exp *time.Duration)
 
 	return cmd.Err()
 }
+
 func GetVal(ctx context.Context, key string) (*RedisCache, error) {
 	client, err := Redis()
 	if err != nil {
@@ -109,9 +113,9 @@ func CreateGame(ctx context.Context, key string, cache RedisCache, exp *time.Dur
 // Nil pointers mean "don't update this field".
 // Returns an error if the key doesn't exist - use CreateGame to create new games.
 // exp can be nil to keep existing TTL.
-func UpdateVal(ctx context.Context, key string, updates UpdateOptions, exp *time.Duration) error {
+func UpdateVal(ctx context.Context, gameId string, updates UpdateOptions, exp *time.Duration) error {
 	// Get current value - must exist
-	current, err := GetVal(ctx, key)
+	current, err := GetVal(ctx, gameId)
 	if err != nil {
 		return err
 	}
@@ -122,6 +126,9 @@ func UpdateVal(ctx context.Context, key string, updates UpdateOptions, exp *time
 	}
 	if updates.Board != nil {
 		current.Board = *updates.Board
+	}
+	if updates.PGN != nil {
+		current.PGN = *updates.PGN
 	}
 	if updates.GameEnd != nil {
 		current.GameEnd = *updates.GameEnd
@@ -137,7 +144,7 @@ func UpdateVal(ctx context.Context, key string, updates UpdateOptions, exp *time
 	}
 
 	// Write back the merged value
-	return setVal(ctx, key, *current, exp)
+	return setVal(ctx, gameId, *current, exp)
 }
 
 // PubSub functions for cross-instance communication

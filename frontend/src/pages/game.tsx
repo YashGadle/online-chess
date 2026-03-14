@@ -22,6 +22,8 @@ const Game = () => {
     clockTimes,
     chessBoardOptions,
     chessPosition,
+    drawOffer,
+    resign,
   } = useGameContext();
 
   if (checkGameEnd(chessPosition)) {
@@ -36,40 +38,61 @@ const Game = () => {
 
   if (!gameId) return null;
   return (
-    <div className="flex flex-col justify-center items-center min-h-screen p-4">
-      <div className="relative w-full max-w-[min(90vw,90vh,600px)]">
-        <div className="flex flex-col gap-2 relative">
-          {startGame && (
-            // opponent's clock
-            <Clock
-              timeMs={
-                opponentColor === "w"
-                  ? clockTimes.whiteTimeMs
-                  : clockTimes.blackTimeMs
-              }
-              isRunning={startClock && activeTurn === opponentColor}
-            />
-          )}
-          <div className="relative w-full aspect-square">
-            {(readyState !== ReadyState.OPEN || !startGame) && (
-              <BlockingOverlay />
+    <div className="flex gap-[24px] px-[24px]">
+      <div className="flex flex-col items-center p-4">
+        <div className="relative w-full max-w-[min(90vw,90vh,600px)]">
+          <div className="flex flex-col gap-2 relative">
+            {startGame && (
+              // opponent's clock
+              <Clock
+                timeMs={
+                  opponentColor === "w"
+                    ? clockTimes.whiteTimeMs
+                    : clockTimes.blackTimeMs
+                }
+                isRunning={startClock && activeTurn === opponentColor}
+              />
             )}
-            <Chessboard options={chessBoardOptions} />
+            <div className="relative w-full aspect-square">
+              {(readyState !== ReadyState.OPEN || !startGame) && (
+                <BlockingOverlay />
+              )}
+              <Chessboard options={chessBoardOptions} />
+            </div>
+            {startGame && (
+              // player's clock
+              <Clock
+                timeMs={
+                  playerColor === "w"
+                    ? clockTimes.whiteTimeMs
+                    : clockTimes.blackTimeMs
+                }
+                isRunning={startClock && activeTurn === playerColor}
+              />
+            )}
           </div>
-          {startGame && (
-            // player's clock
-            <Clock
-              timeMs={
-                playerColor === "w"
-                  ? clockTimes.whiteTimeMs
-                  : clockTimes.blackTimeMs
-              }
-              isRunning={startClock && activeTurn === playerColor}
-            />
-          )}
+        </div>
+        <GameOverModal ref={gameOverModalRef} board={chessPosition} />
+      </div>
+
+      <div className="flex flex-col gap-2 my-8">
+        <div className="flex gap-2 items-center justify-center">
+          <button
+            className="btn btn-primary"
+            disabled={readyState !== ReadyState.OPEN || !startGame}
+            onClick={resign}>Resign
+          </button>
+          <button
+            className="btn btn-secondary"
+            disabled={readyState !== ReadyState.OPEN || !startGame}
+            onClick={drawOffer}>Offer Draw
+          </button>
+        </div>
+
+        <div className="h-full w-2xl bg-base-300">
+
         </div>
       </div>
-      <GameOverModal ref={gameOverModalRef} board={chessPosition} />
     </div>
   );
 };

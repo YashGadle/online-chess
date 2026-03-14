@@ -25,6 +25,8 @@ export type GameContextT = {
   clockTimes: { whiteTimeMs: number; blackTimeMs: number };
   chessPosition: string;
   chessBoardOptions: ChessboardOptions;
+  drawOffer: () => void,
+  resign: () => void,
 };
 
 const SOCKET_URL =
@@ -99,6 +101,10 @@ export const GameContextProvider = ({
         chessGame.move({ from: data.data.fromSquare, to: data.data.toSquare });
         setChessPosition(chessGame.fen());
         setActiveTurn(chessGame.turn());
+        setClockTimes({
+          blackTimeMs: data.data.blackTimeMs,
+          whiteTimeMs: data.data.whiteTimeMs,
+        });
       } catch (error) {
         appContext.showToast({
           type: "error",
@@ -106,7 +112,25 @@ export const GameContextProvider = ({
         });
       }
     }
+    if (data.type === "signal") {
+      const board = data.data.board;
+      if (!board) return;
+      setChessPosition(board);
+      chessGame.load(board);
+
+    }
   }, [lastMessage]);
+
+  const drawOffer = () => {
+    sendJsonMessage({
+      type: 'draw'
+    })
+  }
+  const resign = () => {
+    sendJsonMessage({
+      type: 'resign'
+    })
+  }
 
   const onPieceDrop = ({
     sourceSquare,
@@ -129,7 +153,6 @@ export const GameContextProvider = ({
           fromSquare: sourceSquare,
           toSquare: targetSquare,
           board: chessGame.fen(),
-          clientMoveTimeMs: Date.now(),
         },
       } as WSMessageT);
 
@@ -204,6 +227,8 @@ export const GameContextProvider = ({
         chessPosition,
         //@ts-ignore
         chessBoardOptions,
+        drawOffer,
+        resign,
       }}
     >
       {children}

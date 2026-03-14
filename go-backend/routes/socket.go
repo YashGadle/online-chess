@@ -5,11 +5,12 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
+	"github.com/corentings/chess/v2"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
-	"github.com/notnil/chess"
 	"github.com/yashgadle/go-chess/client"
 	"github.com/yashgadle/go-chess/common"
 	"github.com/yashgadle/go-chess/utils"
@@ -124,18 +125,26 @@ func handleIncomingMessage(conn *websocket.Conn, r *http.Request, gameId string,
 			return
 		}
 
+		var player client.User
+		for _, user := range gameCache.Users {
+			if user.Id == userId {
+				player = user
+			}
+		}
+
+		pgnReader := strings.NewReader(gameCache.PGN)
+		pgn, err := chess.PGN(pgnReader)
+		if err != nil {
+			log.Println("Invalid PGN")
+			return
+		}
+		game := chess.NewGame(pgn)
+
 		// Move
-		if WSMessage.Type == common.MsgMove {
+		switch WSMessage.Type {
+		case common.MsgMove:
 			var movePayload common.MovePayload
 			json.Unmarshal(WSMessage.Data, &movePayload)
-
-			fenFunc, err := chess.FEN(gameCache.Board)
-			if err != nil {
-				log.Println("Invalid FEN")
-				return
-			}
-
-			game := chess.NewGame(fenFunc, chess.UseNotation(chess.UCINotation{}))
 
 			//	Clock logic
 			now := time.Now().UnixMilli()
@@ -154,7 +163,7 @@ func handleIncomingMessage(conn *websocket.Conn, r *http.Request, gameId string,
 				startClockPayload := common.StartClockPayload{
 					WhiteTimeMs:  gameCache.WhiteTimeMs,
 					BlackTimeMs:  gameCache.BlackTimeMs,
-					LastMoveAtMs: gameCache.LastMoveAtMs,
+					LastMoveAtMs: lastMoveAtMs,
 				}
 				startClockPayloadBytes, err := json.Marshal(startClockPayload)
 				if err != nil {
@@ -204,7 +213,7 @@ func handleIncomingMessage(conn *websocket.Conn, r *http.Request, gameId string,
 					if moveTimeMs > gameCache.BlackTimeMs {
 						log.Println("Black lost on time")
 						gameEnd := true
-						blackTimeMs := int64(0)
+						blackTimeMs = int64(0)
 						board := game.FEN()
 						client.UpdateVal(r.Context(), gameId, client.UpdateOptions{
 							Board:        &board,
@@ -219,7 +228,7 @@ func handleIncomingMessage(conn *websocket.Conn, r *http.Request, gameId string,
 			}
 
 			// Make move
-			err = game.MoveStr(movePayload.FromSquare + movePayload.ToSquare)
+			err = game.PushNotationMove(movePayload.FromSquare+movePayload.ToSquare, chess.UCINotation{}, nil)
 			if err != nil {
 				// invalid move probably
 				log.Println(err)
@@ -230,9 +239,11 @@ func handleIncomingMessage(conn *websocket.Conn, r *http.Request, gameId string,
 			if game.Outcome() != chess.NoOutcome {
 				log.Println("Game has ended")
 				board := game.FEN()
+				pgn := game.String()
 				gameEnd := true
 				client.UpdateVal(r.Context(), gameId, client.UpdateOptions{
 					Board:        &board,
+					PGN:          &pgn,
 					GameEnd:      &gameEnd,
 					WhiteTimeMs:  &whiteTimeMs,
 					BlackTimeMs:  &blackTimeMs,
@@ -241,8 +252,10 @@ func handleIncomingMessage(conn *websocket.Conn, r *http.Request, gameId string,
 			}
 
 			board := game.FEN()
+			pgn := game.String()
 			client.UpdateVal(r.Context(), gameId, client.UpdateOptions{
 				Board:        &board,
+				PGN:          &pgn,
 				WhiteTimeMs:  &whiteTimeMs,
 				BlackTimeMs:  &blackTimeMs,
 				LastMoveAtMs: &lastMoveAtMs,
@@ -260,14 +273,92 @@ func handleIncomingMessage(conn *websocket.Conn, r *http.Request, gameId string,
 				Type:       common.MsgMove,
 				GameId:     gameId,
 				FromUserId: userId,
+				Data:       moveData,
 			}
-			event.Data = moveData
 			eventBytes, _ := json.Marshal(event)
 			err = client.PublishGameEvent(r.Context(), gameId, eventBytes)
 			if err != nil {
 				log.Println("Error publishing move event to Redis pub/sub")
 				return
 			}
+
+		case common.MsgResign:
+			if player.Color == "w" {
+				game.Resign(chess.White)
+			} else {
+				game.Resign(chess.Black)
+			}
+			board := game.FEN()
+			isGameOver := true
+			client.UpdateVal(r.Context(), gameId, client.UpdateOptions{
+				Board:   &board,
+				GameEnd: &isGameOver,
+			}, nil)
+
+			var signalData common.SignalPayload
+			if player.Color == "w" {
+				signalData = common.SignalPayload{
+					Message: "Black wins by resignation",
+					Board:   board,
+				}
+			} else {
+				signalData = common.SignalPayload{
+					Message: "White wins by resignation",
+					Board:   board,
+				}
+			}
+
+			marshalSignalData, _ := json.Marshal(signalData)
+
+			eventData := common.PubSubEvent{
+				Type:       common.MsgSignal,
+				GameId:     gameId,
+				FromUserId: userId,
+				Data:       marshalSignalData,
+			}
+			eventBytes, _ := json.Marshal(eventData)
+
+			client.PublishGameEvent(r.Context(), gameId, eventBytes)
+		case common.MsgDrawOffer:
+			eventData := common.PubSubEvent{
+				Type:       common.MsgDrawOffer,
+				GameId:     gameId,
+				FromUserId: userId,
+			}
+			eventBytes, _ := json.Marshal(eventData)
+			client.PublishGameEvent(r.Context(), gameId, eventBytes)
+		case common.MsgDrawAccept:
+			if err := game.Draw(chess.DrawOffer); err != nil {
+				log.Println("Invalid draw offer")
+				return
+			}
+
+			board := game.FEN()
+			gameEnd := true
+			client.UpdateVal(r.Context(), gameId, client.UpdateOptions{
+				Board:   &board,
+				GameEnd: &gameEnd,
+			}, nil)
+
+			signalData := common.SignalPayload{
+				Message: "Draw by agreement",
+				Board:   board,
+			}
+			signalBytes, _ := json.Marshal(signalData)
+
+			eventData := common.PubSubEvent{
+				Type:       common.MsgSignal,
+				GameId:     gameId,
+				FromUserId: userId,
+				Data:       signalBytes,
+			}
+
+			eventBytes, _ := json.Marshal(eventData)
+
+			client.PublishGameEvent(r.Context(), gameId, eventBytes)
+
+		default:
+			// ignore unknown message types
 		}
 	}
 }

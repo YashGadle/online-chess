@@ -12,10 +12,14 @@ const (
 	MsgStartClock MessageType = "start_clock"
 	MsgMove       MessageType = "move"
 	MsgTimeSync   MessageType = "time_sync"
+	MsgResign     MessageType = "resign"
+	MsgDrawOffer  MessageType = "draw"
+	MsgDrawAccept MessageType = "draw_accept"
 )
 
 type SignalPayload struct {
 	Message string `json:"message"`
+	Board   string `json:"board"`
 }
 
 type MovePayload struct {

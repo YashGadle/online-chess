@@ -23,6 +23,7 @@ export type WSMessageT =
 
 export type SignalPayload = {
   message: string;
+  board?: string;
 };
 
 export type StartClockPayload = {
@@ -36,7 +37,8 @@ export type MovePayload = {
   fromSquare: string;
   toSquare: string;
   board: string;
-  clientMoveTimeMs?: number;
+  blackTimeMs: number;
+  whiteTimeMs: number;
 };
 
 // Payload for starting a game (based on Go's StartGamePayload)

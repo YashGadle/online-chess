@@ -1,3 +1,4 @@
+// Package routes Handles /api routes
 package routes
 
 import (
@@ -7,9 +8,9 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/corentings/chess/v2"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
-	"github.com/notnil/chess"
 	"github.com/yashgadle/go-chess/client"
 	"github.com/yashgadle/go-chess/utils"
 )
@@ -34,16 +35,18 @@ func CreateGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := json.Unmarshal(body, &gameSettings); err != nil {
+	if err = json.Unmarshal(body, &gameSettings); err != nil {
 		http.Error(w, "Error parsing body", http.StatusBadRequest)
 		return
 	}
 
 	chess := chess.NewGame()
+	chess.AddTagPair("Event", "Random Online Chess Game")
 	exp := 24 * time.Hour
 	cache := client.RedisCache{
 		Users: []client.User{},
 		Board: chess.FEN(),
+		PGN:   chess.String(),
 	}
 	err = client.CreateGame(r.Context(), gameId, cache, &exp)
 	if err != nil {

@@ -14,7 +14,9 @@ const JoinGame = () => {
   const { search } = useLocation();
   const searchParams = new URLSearchParams(search);
 
-  set(gameId, {});
+  set(gameId, {
+    moves: []
+  });
 
   const { data, isPending } = useQuery({
     queryKey: ["startGame"],
