@@ -1,5 +1,23 @@
 @import "tailwindcss";
 
 @plugin "daisyui" {
-    themes: dark --default, forest;
+    themes: dark --default, dark;
+}
+
+::view-transition-old(root) {
+  animation: 200ms ease both slide-out;
+}
+
+::view-transition-new(root) {
+  animation: 200ms ease both slide-in;
+}
+
+@keyframes slide-out {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50px); opacity: 0; }
+}
+
+@keyframes slide-in {
+  from { transform: translateX(50px); opacity: 0; }
+  to   { transform: translateX(0); }
 }
