@@ -57,20 +57,19 @@ export const GameContextProvider = ({
   const [squareStyles, setSquareStyles] = useState({});
   const [chessPosition, setChessPosition] = useState(chessGame.fen());
   const [playerColor, setPlayerColor] = useState<"w" | "b">("w");
-  const [activeTurn, setActiveTurn] = useState(chessGame.turn());
+  const [activeTurn, setActiveTurn] = useState("w");
+  const [explicitGameOver, setExplicitGameOver] = useState({ over: false, message: '' });
 
   useEffect(() => {
     if (!lastMessage || !lastMessage.data) return;
     const data: WSMessageT = JSON.parse(lastMessage.data);
 
     if (data.type === "start_game") {
+      chessGame.loadPgn(data.data.pgn);
       setStartGame(true);
-      setChessPosition(data.data.board);
       setPlayerColor(data.data.playerColor);
-      chessGame.load(data.data.board);
-
-    }
-    if (data.type === "start_clock") {
+      setChessPosition(chessGame.fen());
+    } else if (data.type === "start_clock") {
       const lastMoveAtMs = data.data.lastMoveAtMs || 0;
       const whiteTimeMs = data.data.whiteTimeMs || 0;
       const blackTimeMs = data.data.blackTimeMs || 0;
@@ -95,8 +94,7 @@ export const GameContextProvider = ({
       }
 
       setStartClock(true);
-    }
-    if (data.type === "move") {
+    } else if (data.type === "move") {
       try {
         chessGame.move({ from: data.data.fromSquare, to: data.data.toSquare });
         setChessPosition(chessGame.fen());
@@ -105,19 +103,22 @@ export const GameContextProvider = ({
           blackTimeMs: data.data.blackTimeMs,
           whiteTimeMs: data.data.whiteTimeMs,
         });
-      } catch (error) {
+      } catch {
         appContext.showToast({
           type: "error",
           message: "Invalid move",
         });
       }
-    }
-    if (data.type === "signal") {
-      const board = data.data.board;
+    } else if (data.type === "signal") {
+      const board = data.data.pgn;
       if (!board) return;
       setChessPosition(board);
       chessGame.load(board);
 
+    } else if (data.type === "explicit_game_over") {
+      if (data.data.gameOverType === "resignation") {
+        setExplicitGameOver({ over: true, message: data.data.message });
+      }
     }
   }, [lastMessage]);
 
@@ -152,7 +153,6 @@ export const GameContextProvider = ({
         data: {
           fromSquare: sourceSquare,
           toSquare: targetSquare,
-          board: chessGame.fen(),
         },
       } as WSMessageT);
 
@@ -161,7 +161,7 @@ export const GameContextProvider = ({
       setSquareStyles({});
 
       return true;
-    } catch (err) {
+    } catch {
       return false;
     }
   };

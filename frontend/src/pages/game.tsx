@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 
 import { Chessboard } from "react-chessboard";
 import { ReadyState } from "react-use-websocket";
@@ -26,19 +26,15 @@ const Game = () => {
     resign,
   } = useGameContext();
 
-  if (checkGameEnd(chessPosition)) {
-    gameOverModalRef.current?.showModal();
-  }
-
-  const BlockingOverlay = () => (
-    <div className="absolute inset-0 z-10 bg-black/50 flex justify-center items-center rounded-lg">
-      <span className="text-3xl text-white">Waiting for opponent</span>
-    </div>
-  );
+  useEffect(() => {
+    if (checkGameEnd(chessPosition)) {
+      gameOverModalRef.current?.showModal();
+    }
+  }, [chessPosition])
 
   if (!gameId) return null;
   return (
-    <div className="flex gap-[24px] px-[24px]">
+    <div className="flex gap-6 px-6">
       <div className="flex flex-col items-center p-4">
         <div className="relative w-full max-w-[min(90vw,90vh,600px)]">
           <div className="flex flex-col gap-2 relative">
@@ -96,5 +92,12 @@ const Game = () => {
     </div>
   );
 };
+
+const BlockingOverlay = () => (
+  <div className="absolute inset-0 z-10 bg-black/50 flex justify-center items-center rounded-lg">
+    <span className="text-3xl text-white">Waiting for opponent</span>
+  </div>
+);
+
 
 export default Game;

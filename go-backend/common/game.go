@@ -6,7 +6,7 @@ type Game struct {
 	Id    string
 	White *Player
 	Black *Player
-	Board string
+	PGN   string
 	mu    sync.Mutex // lock needed
 }
 

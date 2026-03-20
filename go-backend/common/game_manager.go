@@ -15,15 +15,15 @@ func NewGameManager() *GameManager {
 	}
 }
 
-func (gm *GameManager) GetOrCreateGame(gameId string, board string) *Game {
+func (gm *GameManager) GetOrCreateGame(gameId string, pgn string) *Game {
 	gm.mu.Lock()
 	defer gm.mu.Unlock()
 
 	game := gm.Games[gameId]
 	if game == nil {
 		game = &Game{
-			Id:    gameId,
-			Board: board,
+			Id:  gameId,
+			PGN: pgn,
 		}
 		gm.Games[gameId] = game
 	}

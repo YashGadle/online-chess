@@ -19,11 +19,28 @@ export type WSMessageT =
   | {
     type: "start_game";
     data: StartGamePayload;
+  }
+  | {
+    type: "explicit_game_over";
+    data: ExplicitGameOverPayload;
+  }
+  | {
+    type: "draw_offer";
+    data: DrawOfferPayload;
   };
+
+export type ExplicitGameOverPayload = {
+  gameOverType: "resignation" | "draw_by_agreement";
+  pgn: string;
+};
+
+export type DrawOfferPayload = {
+  message: string;
+};
 
 export type SignalPayload = {
   message: string;
-  board?: string;
+  pgn?: string;
 };
 
 export type StartClockPayload = {
@@ -43,7 +60,7 @@ export type MovePayload = {
 
 // Payload for starting a game (based on Go's StartGamePayload)
 export type StartGamePayload = {
-  board: string;
+  pgn: string;
   playerColor: "w" | "b";
   whiteTimeMs?: number;
   blackTimeMs?: number;

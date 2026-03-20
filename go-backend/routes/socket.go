@@ -94,7 +94,7 @@ func WSEndpoint(gm *common.GameManager) http.HandlerFunc {
 			Message: "connected",
 		})
 
-		gameManager(player, gameId, gameCache.Board, gm)
+		gameManager(player, gameId, gameCache.PGN, gm)
 
 		// Subscribe to game events via pub/sub
 		psm := utils.GetPubSubManager(gm)
@@ -235,11 +235,12 @@ func handleIncomingMessage(conn *websocket.Conn, r *http.Request, gameId string,
 				return
 			}
 
+			board := game.FEN()
+			pgn := game.String()
+
 			// Check if game has ended
 			if game.Outcome() != chess.NoOutcome {
 				log.Println("Game has ended")
-				board := game.FEN()
-				pgn := game.String()
 				gameEnd := true
 				client.UpdateVal(r.Context(), gameId, client.UpdateOptions{
 					Board:        &board,
@@ -251,8 +252,6 @@ func handleIncomingMessage(conn *websocket.Conn, r *http.Request, gameId string,
 				}, nil)
 			}
 
-			board := game.FEN()
-			pgn := game.String()
 			client.UpdateVal(r.Context(), gameId, client.UpdateOptions{
 				Board:        &board,
 				PGN:          &pgn,
@@ -289,32 +288,26 @@ func handleIncomingMessage(conn *websocket.Conn, r *http.Request, gameId string,
 				game.Resign(chess.Black)
 			}
 			board := game.FEN()
+			pgn := game.String()
 			isGameOver := true
 			client.UpdateVal(r.Context(), gameId, client.UpdateOptions{
 				Board:   &board,
+				PGN:     &pgn,
 				GameEnd: &isGameOver,
 			}, nil)
 
-			var signalData common.SignalPayload
-			if player.Color == "w" {
-				signalData = common.SignalPayload{
-					Message: "Black wins by resignation",
-					Board:   board,
-				}
-			} else {
-				signalData = common.SignalPayload{
-					Message: "White wins by resignation",
-					Board:   board,
-				}
+			resignationPayload := common.ExplicitGameOverPayload{
+				GameOverType: "resignation",
+				PGN:          pgn,
 			}
 
-			marshalSignalData, _ := json.Marshal(signalData)
+			marshalData, _ := json.Marshal(resignationPayload)
 
 			eventData := common.PubSubEvent{
-				Type:       common.MsgSignal,
+				Type:       common.MsgExplicitGameOver,
 				GameId:     gameId,
 				FromUserId: userId,
-				Data:       marshalSignalData,
+				Data:       marshalData,
 			}
 			eventBytes, _ := json.Marshal(eventData)
 
@@ -334,15 +327,17 @@ func handleIncomingMessage(conn *websocket.Conn, r *http.Request, gameId string,
 			}
 
 			board := game.FEN()
+			pgn := game.String()
 			gameEnd := true
 			client.UpdateVal(r.Context(), gameId, client.UpdateOptions{
 				Board:   &board,
+				PGN:     &pgn,
 				GameEnd: &gameEnd,
 			}, nil)
 
 			signalData := common.SignalPayload{
 				Message: "Draw by agreement",
-				Board:   board,
+				PGN:     pgn,
 			}
 			signalBytes, _ := json.Marshal(signalData)
 
@@ -363,14 +358,14 @@ func handleIncomingMessage(conn *websocket.Conn, r *http.Request, gameId string,
 	}
 }
 
-func gameManager(player *common.Player, gameId string, board string, gm *common.GameManager) {
-	game := gm.GetOrCreateGame(gameId, board)
+func gameManager(player *common.Player, gameId string, pgn string, gm *common.GameManager) {
+	game := gm.GetOrCreateGame(gameId, pgn)
 	game.AddPlayer(player)
 
 	if game.White != nil && game.Black != nil {
 		// both players connected. start game
 		startGamePayload := common.StartGamePayload{
-			Board:       board,
+			PGN:         pgn,
 			PlayerColor: player.Color,
 		}
 

@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router";
 
-import Home from "./pages/home";
+import LandingPage from "./pages/landing";
 import Game from "./pages/game";
 import Layout from "./components/layout";
 import JoinGame from "./pages/join-game";
@@ -15,7 +15,7 @@ function App() {
           path="/"
           element={
             <Layout>
-              <Home />
+              <LandingPage />
             </Layout>
           }
         />

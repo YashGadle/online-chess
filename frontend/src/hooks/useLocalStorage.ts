@@ -2,7 +2,6 @@ const useLocalStorage = () => {
   //TODO: fix this implementation to be type safe.
   const set = (key: string, value: unknown) => {
     try {
-      console.log(key, value)
       localStorage.setItem(key, JSON.stringify(value));
     } catch (e) {
       console.error("localStorage set failed", e);
