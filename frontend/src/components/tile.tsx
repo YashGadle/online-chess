@@ -11,7 +11,7 @@ const Tile = (props: PropsT) => {
   return (
     <button
       onClick={() => onClick(value)}
-      className={`relative flex flex-col gap-4 items-center justify-center w-55 h-37.5 bg-tertiary rounded-sm cursor-pointer ${active && "active-border"}`}>
+      className={`relative flex flex-col gap-4 items-center justify-center w-55 h-37.5 bg-tertiary-100 rounded-sm cursor-pointer ${active && "active-border"}`}>
       <div className="text-[2rem] font-medium">{title}</div>
       <div className="text-[0.8rem] font-light uppercase tracking-widest">{subtitle}</div>
       {active && <div className="absolute top-2 right-2 bg-amber-300 w-[6px] h-[6px] rounded-full [box-shadow:0_0_5px_2px_rgba(234,179,8,0.6)]" />}

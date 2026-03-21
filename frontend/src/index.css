@@ -47,6 +47,14 @@
 
 }
 
-.bg-tertiary {
+.bg-tertiary-100 {
   background-color: var(--color-tertiary);
+}
+
+.bg-tertiary-200 {
+  background-color: #1E2026;
+}
+
+.bg-tertiary-300 {
+  background-color: #14161B;
 }

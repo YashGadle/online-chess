@@ -36,12 +36,15 @@ const GameSetup = () => {
     onSuccess: (data) => {
       if (!data) return;
 
-      navigate(data.gameUrl);
-      //      setInviteUrl(data.inviteUrl);
       showToast({
         type: "success",
         message: "Game created!",
       });
+
+      const queryParams = new URLSearchParams();
+      queryParams.set('inviteUrl', btoa(data.inviteUrl));
+      navigate(`/waiting-room?${queryParams.toString()}`, { viewTransition: true });
+
     },
     onError: () => {
       showToast({
@@ -106,7 +109,7 @@ const GameSetup = () => {
         <div className="flex justify-center w-full mt-6">
           <div className="relative w-max flex justify-center overflow-hidden rounded-xl">
             <div className="bubble" >
-              <div className="bubble-content bg-tertiary" />
+              <div className="bubble-content bg-tertiary-100" />
             </div>
             <button className={`anchor bg-base-300 ${color === WHITE && "active"}`} onClick={() => onColorPick(WHITE)}>
               <div className="flex flex-col items-center justify-center z-2">

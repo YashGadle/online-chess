@@ -1,9 +1,12 @@
 import { createBrowserRouter, RouterProvider } from "react-router";
+
 import LandingPage from "./pages/landing";
 import GameSetup from "./pages/game-setup";
 import Game from "./pages/game";
-import Layout from "./components/layout";
 import JoinGame from "./pages/join-game";
+import WaitingRoom from "./pages/waiting-room";
+import Layout from "./components/layout";
+
 import { GameContextProvider } from "./context/game";
 
 const router = createBrowserRouter([
@@ -14,6 +17,10 @@ const router = createBrowserRouter([
   {
     path: "/game-setup",
     element: <Layout><GameSetup /></Layout>,
+  },
+  {
+    path: "/waiting-room",
+    element: <Layout><WaitingRoom /></Layout>,
   },
   {
     path: "/joinGame/:gameId",
