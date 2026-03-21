@@ -42,11 +42,18 @@ func CreateGame(w http.ResponseWriter, r *http.Request) {
 
 	chess := chess.NewGame()
 	chess.AddTagPair("Event", "Random Online Chess Game")
+
+	timeControl := gameSettings.Time
+	timeMs := utils.GetTime(utils.TimeControl(timeControl))
+
 	exp := 24 * time.Hour
 	cache := client.RedisCache{
-		Users: []client.User{},
-		Board: chess.FEN(),
-		PGN:   chess.String(),
+		Users:        []client.User{},
+		Board:        chess.FEN(),
+		WhiteTimeMs:  timeMs,
+		BlackTimeMs:  timeMs,
+		LastMoveAtMs: 0,
+		PGN:          chess.String(),
 	}
 	err = client.CreateGame(r.Context(), gameId, cache, &exp)
 	if err != nil {
@@ -58,8 +65,8 @@ func CreateGame(w http.ResponseWriter, r *http.Request) {
 	if opponentColor == "" {
 		opponentColor = "b"
 	}
-	startGameUrl := fmt.Sprintf("/joinGame/%s?color=%s&time=%s", gameId, gameSettings.Color, gameSettings.Time)
-	inviteUrl := fmt.Sprintf("/joinGame/%s?color=%s&time=%s", gameId, opponentColor, gameSettings.Time)
+	startGameUrl := fmt.Sprintf("/joinGame/%s?color=%s", gameId, gameSettings.Color)
+	inviteUrl := fmt.Sprintf("/joinGame/%s?color=%s", gameId, opponentColor)
 
 	w.Header().Set("content-type", "application/json")
 	json.NewEncoder(w).Encode(CreateGameResponse{
@@ -82,9 +89,7 @@ func JoinGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	timeControl := r.URL.Query().Get("time")
 	color := r.URL.Query().Get("color")
-	timeMs := utils.GetTime(utils.TimeControl(timeControl))
 	currentUsersInGame := gameCache.Users
 
 	if len(currentUsersInGame) == 2 {
@@ -109,13 +114,9 @@ func JoinGame(w http.ResponseWriter, r *http.Request) {
 			Id:    userId,
 			Color: color,
 		})
-		timeMs64 := timeMs
-		lastMoveAtMs := int64(0)
+
 		err := client.UpdateVal(r.Context(), gameId, client.UpdateOptions{
 			Users:        &currentUsersInGame,
-			WhiteTimeMs:  &timeMs64,
-			BlackTimeMs:  &timeMs64,
-			LastMoveAtMs: &lastMoveAtMs,
 		}, nil)
 		if err != nil {
 			http.Error(w, "Error Writing to Redis", http.StatusInternalServerError)

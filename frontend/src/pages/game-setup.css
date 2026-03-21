@@ -67,7 +67,7 @@
   top: anchor(top);
   width: anchor-size(width);
   height: anchor-size(height);
-  transition: all 0.2s linear;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   border-radius: 8px;
   pointer-events: none;
   display: flex;

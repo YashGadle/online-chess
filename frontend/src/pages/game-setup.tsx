@@ -1,10 +1,16 @@
 import { useState } from 'react';
+
+import { useMutation } from "@tanstack/react-query";
+import { useNavigate } from 'react-router';
+
 import { Tile } from "../components/tile";
 
 import QueenWhite from '../assets/QueenWhite';
 import QueenBlack from '../assets/QueenBlack';
+import * as apiClient from "../utils/api-client";
 
 import { timeControlOptions } from "../utils/time-control";
+import { useAppContext } from '../context/app';
 
 import './game-setup.css';
 
@@ -12,7 +18,8 @@ const WHITE = 'w', BLACK = 'b', RANDOM = '?';
 
 const GameSetup = () => {
   const [timeControl, setTimeControl] = useState("3|1");
-  const [color, setColor] = useState(RANDOM);
+  const [color, setColor] = useState<"w" | "b" | "?">(RANDOM);
+  const navigate = useNavigate();
 
   const onTimeControlClick = (tC: string) => {
     setTimeControl(tC);
@@ -20,6 +27,43 @@ const GameSetup = () => {
   const onColorPick = (option: "w" | "b" | "?") => {
     setColor(option);
   }
+
+  const { showToast } = useAppContext();
+
+  const { mutate, isPending } = useMutation({
+    mutationKey: ["createGame"],
+    mutationFn: apiClient.createGame,
+    onSuccess: (data) => {
+      if (!data) return;
+
+      navigate(data.gameUrl);
+      //      setInviteUrl(data.inviteUrl);
+      showToast({
+        type: "success",
+        message: "Game created!",
+      });
+    },
+    onError: () => {
+      showToast({
+        type: "error",
+        message: "Couldn't create game. Please try again.",
+      });
+    },
+  });
+
+  const createGameHandler = async (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>
+  ) => {
+    e.preventDefault();
+    if (color === RANDOM) {
+      const rand = Math.random();
+      if (rand > 0.5)
+        mutate({ color: WHITE, time: timeControl });
+      else mutate({ color: BLACK, time: timeControl });
+    } else {
+      mutate({ color, time: timeControl });
+    }
+  };
 
   return (
     <div className="mx-auto mt-0 lg:mt-14">
@@ -65,7 +109,7 @@ const GameSetup = () => {
               <div className="bubble-content bg-tertiary" />
             </div>
             <button className={`anchor bg-base-300 ${color === WHITE && "active"}`} onClick={() => onColorPick(WHITE)}>
-              <div className="z-2">
+              <div className="flex flex-col items-center justify-center z-2">
                 <QueenWhite size={48} />
                 White
               </div>
@@ -77,7 +121,7 @@ const GameSetup = () => {
               </div>
             </button>
             <button className={`anchor bg-base-300 ${color === BLACK && "active"}`} onClick={() => onColorPick(BLACK)}>
-              <div className="z-2">
+              <div className="flex flex-col items-center justify-center z-2">
                 <QueenBlack size={48} />
                 Black
               </div>
@@ -88,10 +132,15 @@ const GameSetup = () => {
 
       <section className="flex justify-center">
         <button
-          //     onClick={onStartClick}
+          onClick={createGameHandler}
           className="btn btn-primary text-neutral btn-xl rounded-sm mt-10 text-[0.9rem] uppercase tracking-[0.2rem] px-12"
+          disabled={isPending}
         >
-          Create Game
+          {isPending ? (
+            <span className="loading loading-dots loading-sm"></span>
+          ) : (
+            "Create Game"
+          )}
         </button>
       </section>
     </div >

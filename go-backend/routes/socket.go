@@ -298,7 +298,6 @@ func handleIncomingMessage(conn *websocket.Conn, r *http.Request, gameId string,
 
 			resignationPayload := common.ExplicitGameOverPayload{
 				GameOverType: "resignation",
-				PGN:          pgn,
 			}
 
 			marshalData, _ := json.Marshal(resignationPayload)
