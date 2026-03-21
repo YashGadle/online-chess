@@ -70,7 +70,7 @@ const GameSetup = () => {
 
   return (
     <div className="mx-auto mt-0 lg:mt-14">
-      <section className="flex flex-col items-center">
+      <section className="flex flex-col items-center max-md:max-w-[90vw]">
         <p className="tracking-[0.5em] text-[0.8rem] uppercase text-secondary">
           Match Configuration
         </p>
@@ -80,7 +80,7 @@ const GameSetup = () => {
         <hr className="w-20 text-secondary" />
       </section>
 
-      <section className="flex flex-col mt-14">
+      <section className="flex flex-col mt-14 max-md:max-w-[90vw]">
         <div className="flex justify-between">
           <span className="text-[1.5rem] text-accent-content"><i>Time Control</i></span>
           <span className="uppercase tracking-wide text-[0.8rem] text-info-content">Minutes per side</span>
@@ -100,7 +100,7 @@ const GameSetup = () => {
         </div>
       </section>
 
-      <section className="flex flex-col mt-14">
+      <section className="flex flex-col mt-14 max-md:max-w-[90vw]">
         <div>
           <span className="text-[1.5rem] text-accent-content"><i>Pick Color</i></span>
           <hr className="w-full text-gray-700" />
@@ -133,7 +133,7 @@ const GameSetup = () => {
         </div>
       </section>
 
-      <section className="flex justify-center">
+      <section className="flex justify-center max-md:max-w-[90vw]">
         <button
           onClick={createGameHandler}
           className="btn btn-primary text-neutral btn-xl rounded-sm mt-10 text-[0.9rem] uppercase tracking-[0.2rem] px-12"
