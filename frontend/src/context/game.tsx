@@ -55,10 +55,10 @@ export const GameContextProvider = ({
     blackTimeMs: 0,
   });
   const [squareStyles, setSquareStyles] = useState({});
-  const [chessPosition, setChessPosition] = useState(chessGame.fen());
+  const [chessPosition, setChessPosition] = useState(new Chess().fen());
   const [playerColor, setPlayerColor] = useState<"w" | "b">("w");
-  const [activeTurn, setActiveTurn] = useState("w");
-  const [explicitGameOver, setExplicitGameOver] = useState({ over: false, message: '' });
+  const [activeTurn, setActiveTurn] = useState<"w" | "b">("w");
+  //const [explicitGameOver, setExplicitGameOver] = useState({ over: false, message: '' });
 
   useEffect(() => {
     if (!lastMessage || !lastMessage.data) return;
@@ -115,11 +115,12 @@ export const GameContextProvider = ({
       setChessPosition(board);
       chessGame.load(board);
 
-    } else if (data.type === "explicit_game_over") {
+    }
+    /**else if (data.type === "explicit_game_over") {
       if (data.data.gameOverType === "resignation") {
         setExplicitGameOver({ over: true, message: data.data.message });
       }
-    }
+    }**/
   }, [lastMessage]);
 
   const drawOffer = () => {
