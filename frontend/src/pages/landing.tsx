@@ -22,7 +22,7 @@ const Home = () => {
         </p>
         <button
           onClick={onStartClick}
-          className="btn btn-primary btn-xl rounded-sm mt-10 text-[0.9rem] uppercase tracking-[0.2rem] px-12"
+          className="btn btn-primary text-neutral btn-xl rounded-sm mt-10 text-[0.9rem] uppercase tracking-[0.2rem] px-12"
         >
           Start a New Game
         </button>

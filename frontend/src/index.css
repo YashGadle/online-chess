@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @plugin "daisyui" {
-    themes: dark --default, dark;
+  themes: dark --default, dark;
 }
 
 ::view-transition-old(root) {
@@ -13,11 +13,40 @@
 }
 
 @keyframes slide-out {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50px); opacity: 0; }
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50px);
+    opacity: 0;
+  }
 }
 
 @keyframes slide-in {
-  from { transform: translateX(50px); opacity: 0; }
-  to   { transform: translateX(0); }
+  from {
+    transform: translateX(50px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+[data-theme="dark"] {
+  --color-primary: #D4AF37;
+  --color-secondary: #C5A028;
+  --color-tertiary: #282A31;
+  --color-accent-content: #CDC5B1;
+  --color-info-content: #948E7B;
+  --color-base-100: #0B0E14;
+  --color-base-200: #080B10;
+  --color-base-300: #05070C;
+  --box-shadow-100: 0 0 5px 5px color-mix(in srgb, var(--color-secondary) 35%, transparent);
+
+}
+
+.bg-tertiary {
+  background-color: var(--color-tertiary);
 }

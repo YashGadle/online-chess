@@ -1,0 +1,88 @@
+.question-mark {
+  font-family: sans-serif;
+  font-weight: 800;
+  -webkit-text-stroke: 1px white;
+  color: var(--color-base-300);
+  transition: 0.1s color linear;
+
+  &.active {
+    color: var(--color-secondary);
+  }
+}
+
+.anchor {
+  width: 150px;
+  height: 150px;
+  text-transform: uppercase;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: 0.1s color linear;
+}
+
+.anchor:nth-of-type(1) {
+  anchor-name: --item-1;
+
+  &.active {
+    color: var(--color-secondary);
+  }
+}
+
+.anchor:nth-of-type(2) {
+  anchor-name: --item-2;
+
+  &.active {
+    color: var(--color-secondary);
+  }
+
+}
+
+.anchor:nth-of-type(3) {
+  anchor-name: --item-3;
+
+  &.active {
+    color: var(--color-secondary);
+  }
+
+}
+
+:root:has(.anchor:nth-of-type(1).active) .bubble {
+  position-anchor: --item-1;
+}
+
+:root:has(.anchor:nth-of-type(2).active) .bubble {
+  position-anchor: --item-2;
+}
+
+:root:has(.anchor:nth-of-type(3).active) .bubble {
+  position-anchor: --item-3;
+}
+
+.bubble {
+  position: absolute;
+  position-anchor: --item-2;
+  left: anchor(left);
+  top: anchor(top);
+  width: anchor-size(width);
+  height: anchor-size(height);
+  transition: all 0.2s linear;
+  border-radius: 8px;
+  pointer-events: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  .bubble-content {
+    height: 80%;
+    width: 85%;
+    border: 1px solid var(--color-secondary);
+    border-radius: 8px;
+    box-shadow: var(--box-shadow-100); 
+  }
+}
+
+.active-border {
+  border: 1px solid var(--color-secondary);
+}
