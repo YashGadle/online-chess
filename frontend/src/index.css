@@ -12,6 +12,13 @@
   animation: 200ms ease both slide-in;
 }
 
+@media (pointer: coarse) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}
+
 @keyframes slide-out {
   from {
     transform: translateX(0);
