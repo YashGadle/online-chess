@@ -1,17 +1,19 @@
 import { Link, useLocation } from 'react-router';
 
+import LandoText from './lando-text';
+
 const Navbar = () => {
   const location = useLocation();
   const isHome = location.pathname === "/";
 
   return (
-    <nav className="navbar bg-base-300 shadow-sm sticky mb-6">
+    <nav className="navbar h-17.5 px-6 bg-base-300 shadow-sm sticky mb-6">
       <Link
-        className="btn btn-ghost text-xl tracking-widest uppercase"
+        className=""
         to="/"
         viewTransition={!isHome}
       >
-        Tactician
+        <LandoText className='uppercase text-2xl'>Tactician</LandoText>
       </Link>
     </nav>
   );
