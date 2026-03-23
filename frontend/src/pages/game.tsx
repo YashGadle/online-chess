@@ -34,9 +34,9 @@ const Game = () => {
 
   if (!gameId) return null;
   return (
-    <div className="flex flex-col lg:flex-row gap-6 px-6">
-      <section className="flex max-w-full grow-3 flex-col items-center p-4">
-        <div className="relative w-full">
+    <div className="flex flex-col lg:flex-row gap-4 px-6">
+      <section className="flex flex-col basis-0 grow-3 items-center">
+        <div className="relative w-full aspect-auto max-w-[min(100%,calc(100vh-120px))]">
           <div className="flex flex-col gap-2 relative">
             {startGame && (
               // opponent's clock
@@ -49,7 +49,7 @@ const Game = () => {
                 isRunning={startClock && activeTurn === opponentColor}
               />
             )}
-            <div className="relative w-full aspect-square">
+            <div className="relative w-full">
               {(readyState !== ReadyState.OPEN || !startGame) && (
                 <BlockingOverlay />
               )}
@@ -71,7 +71,7 @@ const Game = () => {
         <GameOverModal ref={gameOverModalRef} board={chessPosition} />
       </section>
 
-      <section className="flex flex-col gap-2 grow my-8">
+      <section className="flex flex-col basis-0 gap-2 grow my-8">
         <div className="flex gap-2 items-center justify-center">
           <button
             className="btn btn-primary"
@@ -85,9 +85,6 @@ const Game = () => {
           </button>
         </div>
 
-        <div className="h-full w-2xl bg-base-300">
-
-        </div>
       </section>
     </div>
   );
