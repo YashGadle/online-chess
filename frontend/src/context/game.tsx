@@ -3,11 +3,12 @@ import { createContext, useContext, useEffect, useState, useRef } from "react";
 import { Chess, type Square } from "chess.js";
 import { useParams } from "react-router";
 import useWebSocket, { type ReadyState } from "react-use-websocket";
-import type {
-  PieceDropHandlerArgs,
-  PieceHandlerArgs,
-  SquareHandlerArgs,
-  ChessboardOptions,
+import {
+  type PieceDropHandlerArgs,
+  type PieceHandlerArgs,
+  type SquareHandlerArgs,
+  type ChessboardOptions,
+  defaultPieces,
 } from "react-chessboard";
 
 import { useAppContext } from "./app";
@@ -206,6 +207,7 @@ export const GameContextProvider = ({
     position: chessPosition,
     boardOrientation: playerColor === "w" ? "white" : "black",
     squareStyles,
+    darkSquareStyle: { backgroundColor: "#2E3745" },
     onPieceDrop,
     canDragPiece,
     onSquareClick: ({ piece, square }: SquareHandlerArgs) => {
@@ -226,7 +228,7 @@ export const GameContextProvider = ({
         startClock,
         clockTimes,
         chessPosition,
-        //@ts-ignore
+        // @ts-expect-error: Just ignore this
         chessBoardOptions,
         drawOffer,
         resign,
