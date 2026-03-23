@@ -16,6 +16,7 @@ const Clock = ({ timeMs: initialTimeMs, isRunning }: PropsT) => {
 
   // Handle clock running/pausing
   useEffect(() => {
+    if(timeMs <= 0) return;
     if (isRunning && timeMs > 0) {
       if (clockTimer.current) return; // Already running
       
