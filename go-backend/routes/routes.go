@@ -65,8 +65,8 @@ func CreateGame(w http.ResponseWriter, r *http.Request) {
 	if opponentColor == "" {
 		opponentColor = "b"
 	}
-	startGameUrl := fmt.Sprintf("/joinGame/%s?color=%s", gameId, gameSettings.Color)
-	inviteUrl := fmt.Sprintf("/joinGame/%s?color=%s", gameId, opponentColor)
+	startGameUrl := fmt.Sprintf("/join-game/%s?color=%s", gameId, gameSettings.Color)
+	inviteUrl := fmt.Sprintf("/join-game/%s?color=%s", gameId, opponentColor)
 
 	w.Header().Set("content-type", "application/json")
 	json.NewEncoder(w).Encode(CreateGameResponse{

@@ -1,11 +1,23 @@
-import { useLocation } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 import { useAppContext } from '../context/app';
 
 const WaitingRoom = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
+
   const getInviteUrl = () => {
     let str = queryParams.get('inviteUrl') || '';
+    try {
+      str = atob(str);
+    } catch (err) {
+      console.log(err);
+    }
+    return str;
+  }
+
+  const getJoinUrl = () => {
+    let str = queryParams.get('joinUrl') || '';
     try {
       str = atob(str);
     } catch (err) {
@@ -30,6 +42,9 @@ const WaitingRoom = () => {
       });
   };
 
+  const joinGame = () => {
+    navigate(getJoinUrl(), { viewTransition: true });
+  }
 
   return (
     <div className="mx-8 lg:mx-20 mt-0 lg:mt-30" >
@@ -62,6 +77,14 @@ const WaitingRoom = () => {
                 Copy Link
               </button>
             </div>
+            <div className='w-full mt-4 text-center'>
+              <button
+                onClick={joinGame}
+                className='btn btn-primary text-neutral text-[1.2rem] px-8 uppercase tracking-widest'
+              >
+                Join Game
+              </button>
+            </div>
             <div className='mt-6'>
               <span className='text-[1.5rem]'><i>Recent Adversaries</i></span>
               <hr className='w-full text-accent-content' />
@@ -70,8 +93,8 @@ const WaitingRoom = () => {
           </div>
         </section>
 
-      </div >
-    </div >
+      </div>
+    </div>
   )
 };
 

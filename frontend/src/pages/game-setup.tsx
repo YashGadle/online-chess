@@ -43,8 +43,8 @@ const GameSetup = () => {
 
       const queryParams = new URLSearchParams();
       queryParams.set('inviteUrl', btoa(data.inviteUrl));
+      queryParams.set('joinUrl', btoa(data.gameUrl));
       navigate(`/waiting-room?${queryParams.toString()}`, { viewTransition: true });
-
     },
     onError: () => {
       showToast({

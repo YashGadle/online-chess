@@ -23,7 +23,7 @@ const router = createBrowserRouter([
     element: <Layout><WaitingRoom /></Layout>,
   },
   {
-    path: "/joinGame/:gameId",
+    path: "/join-game/:gameId",
     element: <Layout><JoinGame /></Layout>,
   },
   {
