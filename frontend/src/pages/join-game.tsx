@@ -26,7 +26,7 @@ const JoinGame = () => {
   useEffect(() => {
     if (!data) return remove(gameId);
     if (data.ok) {
-      setTimeout(() => navigate(`/play/${gameId}`), 2000);
+      setTimeout(() => navigate(`/play/${gameId}`, { viewTransition: true }), 2000);
     }
   }, [data]);
 

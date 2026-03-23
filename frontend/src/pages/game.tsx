@@ -34,9 +34,9 @@ const Game = () => {
 
   if (!gameId) return null;
   return (
-    <div className="flex gap-6 px-6">
-      <div className="flex flex-col items-center p-4">
-        <div className="relative w-full max-w-[min(90vw,90vh,600px)]">
+    <div className="flex flex-col lg:flex-row gap-6 px-6">
+      <section className="flex max-w-full grow-3 flex-col items-center p-4">
+        <div className="relative w-full">
           <div className="flex flex-col gap-2 relative">
             {startGame && (
               // opponent's clock
@@ -69,9 +69,9 @@ const Game = () => {
           </div>
         </div>
         <GameOverModal ref={gameOverModalRef} board={chessPosition} />
-      </div>
+      </section>
 
-      <div className="flex flex-col gap-2 my-8">
+      <section className="flex flex-col gap-2 grow my-8">
         <div className="flex gap-2 items-center justify-center">
           <button
             className="btn btn-primary"
@@ -88,7 +88,7 @@ const Game = () => {
         <div className="h-full w-2xl bg-base-300">
 
         </div>
-      </div>
+      </section>
     </div>
   );
 };
