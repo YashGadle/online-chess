@@ -12,7 +12,7 @@ const LandoText = ({ children, className }: { children: string, className: strin
           <span
             key={idx}
             className={`${className} lando-styles`}
-            style={{ transitionDelay: `${idx * 0.05}s` }}
+            style={{ transitionDelay: `${idx * 0.025}s` }}
           >
             {ch}
           </span>
