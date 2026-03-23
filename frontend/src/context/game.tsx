@@ -8,7 +8,6 @@ import {
   type PieceHandlerArgs,
   type SquareHandlerArgs,
   type ChessboardOptions,
-  defaultPieces,
 } from "react-chessboard";
 
 import { useAppContext } from "./app";
